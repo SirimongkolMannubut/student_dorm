@@ -1,0 +1,248 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(15,23,42,0.02), rgba(99,102,241,0.02));
+  padding: 3.5rem 1rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 980px;
+  background: var(--surface);
+  border: 1px solid rgba(15,23,42,0.06);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--text-primary);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.input {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.input:focus {
+  box-shadow: 0 10px 30px rgba(59,130,246,0.12);
+  border-color: rgba(59,130,246,0.9);
+}
+
+.utils {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.link {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.error {
+  background: rgba(239,68,68,0.08);
+  color: var(--error);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Left illustration / marketing panel */
+.cardMedia {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  color: white;
+  padding: 2.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.brandTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.brandSubtitle {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.mediaDecor {
+  width: 80px;
+  height: 80px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(96,165,250,0.12), rgba(139,92,246,0.12));
+}
+
+/* Right content */
+.cardContent {
+  padding: 2rem;
+}
+
+.formHeader {
+  display:flex;
+  align-items:center;
+  gap:0.75rem;
+  margin-bottom:0.75rem;
+}
+
+.formTitle {
+  font-size:1.25rem;
+  font-weight:700;
+}
+
+.rememberRow {
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  margin-top:0.25rem;
+}
+
+.rememberLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content:center;
+  background: linear-gradient(90deg,#60a5fa,#7c3aed);
+  color: white;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modalCard {
+  width: 420px;
+  max-width: calc(100% - 32px);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(2,6,23,0.12);
+}
+
+.modalSpinner {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 0.75rem;
+  border-radius: 50%;
+  border: 4px solid rgba(0,0,0,0.08);
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.modalIcon {
+  font-size: 28px;
+  color: var(--success);
+  margin-bottom: 0.5rem;
+}
+
+.modalIconError {
+  font-size: 28px;
+  color: var(--error);
+  margin-bottom: 0.5rem;
+}
+
+.modalMessage {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.modalClose {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  border: none;
+}
+
+.modalFooter {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .cardMedia { display: none; }
+
+  .cardContent { padding: 1.25rem; }
+}

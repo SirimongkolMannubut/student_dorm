@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { LogIn } from 'lucide-react';
+import { useLoginModal } from '../LoginModalContext';
 
 export default function LandingHeader() {
+  const { open } = useLoginModal();
   return (
     <header className="landing-header">
       <div className="landing-header-container">
@@ -17,10 +19,10 @@ export default function LandingHeader() {
           <Link href="#about" className="nav-link">
             เกี่ยวกับ
           </Link>
-          <Link href="/dashboard" className="nav-link btn-nav">
+          <button type="button" className="nav-link btn-nav" onClick={() => open()}>
             <LogIn size={18} />
             เข้าสู่ระบบ
-          </Link>
+          </button>
         </nav>
       </div>
     </header>

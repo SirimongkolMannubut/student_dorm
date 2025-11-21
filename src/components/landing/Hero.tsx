@@ -2,8 +2,10 @@
 
 import { ArrowRight, Building2, Users, Shield, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useLoginModal } from '../LoginModalContext';
 
 export default function Hero() {
+  const { open } = useLoginModal();
   return (
     <section className="hero-section">
       <div className="hero-container">
@@ -35,10 +37,10 @@ export default function Hero() {
             </div>
           </div>
           <div className="hero-actions">
-            <Link href="/dashboard" className="btn-primary">
+            <button type="button" className="btn-primary" onClick={() => open()}>
               เข้าสู่ระบบ
               <ArrowRight size={20} />
-            </Link>
+            </button>
             <Link href="#features" className="btn-secondary">
               เรียนรู้เพิ่มเติม
             </Link>

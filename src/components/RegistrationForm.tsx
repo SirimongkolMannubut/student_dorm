@@ -9,19 +9,22 @@ type Props = {
 
 export default function RegistrationForm({ onSuccess }: Props) {
   const [formData, setFormData] = useState({
-    username: "",
+    studentId: "",
+    fullName: "",
+    email: "",
+    year: "",
+    major: "",
+    faculty: "",
+    phone: "",
     password: "",
     confirmPassword: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    phone: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<any>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,7 +46,7 @@ export default function RegistrationForm({ onSuccess }: Props) {
       });
 
       if (response.ok) {
-        onSuccess(formData.username);
+        onSuccess(formData.email);
       } else {
         const data = await response.json();
         setError(data.error || "เกิดข้อผิดพลาดในการลงทะเบียน");
@@ -57,92 +60,129 @@ export default function RegistrationForm({ onSuccess }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <div className={styles.inputGroup}>
-        <label htmlFor="username" className={styles.label}>ชื่อผู้ใช้</label>
+      <label className={styles.label}>
+        รหัสนักศึกษา
         <input
           type="text"
-          id="username"
-          name="username"
-          value={formData.username}
+          id="studentId"
+          name="studentId"
+          value={formData.studentId}
           onChange={handleChange}
-          className={styles.inputField}
+          className={styles.input}
+          placeholder="เช่น 62010001"
           required
         />
-      </div>
-      <div className={styles.inputGroup}>
-        <label htmlFor="email" className={styles.label}>อีเมล</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          className={styles.inputField}
-          required
-        />
-      </div>
-      <div className={styles.inputGroup}>
-        <label htmlFor="firstName" className={styles.label}>ชื่อจริง</label>
+      </label>
+      <label className={styles.label}>
+        ชื่อ – นามสกุล
         <input
           type="text"
-          id="firstName"
-          name="firstName"
-          value={formData.firstName}
+          id="fullName"
+          name="fullName"
+          value={formData.fullName}
           onChange={handleChange}
-          className={styles.inputField}
+          className={styles.input}
+          placeholder="ชื่อจริง นามสกุล"
           required
         />
-      </div>
-      <div className={styles.inputGroup}>
-        <label htmlFor="lastName" className={styles.label}>นามสกุล</label>
+      </label>
+      <label className={styles.label}>
+        ชั้นปี
+        <select
+          id="year"
+          name="year"
+          value={formData.year}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        >
+          <option value="">เลือกชั้นปี</option>
+          <option value="1">ปี 1</option>
+          <option value="2">ปี 2</option>
+          <option value="3">ปี 3</option>
+          <option value="4">ปี 4</option>
+        </select>
+      </label>
+      <label className={styles.label}>
+        สาขาวิชา
         <input
           type="text"
-          id="lastName"
-          name="lastName"
-          value={formData.lastName}
+          id="major"
+          name="major"
+          value={formData.major}
           onChange={handleChange}
-          className={styles.inputField}
+          className={styles.input}
+          placeholder="เช่น วิทยาการคอมพิวเตอร์"
           required
         />
-      </div>
-      <div className={styles.inputGroup}>
-        <label htmlFor="phone" className={styles.label}>เบอร์โทรศัพท์</label>
+      </label>
+      <label className={styles.label}>
+        คณะ
+        <input
+          type="text"
+          id="faculty"
+          name="faculty"
+          value={formData.faculty}
+          onChange={handleChange}
+          className={styles.input}
+          placeholder="เช่น คณะวศิลปศาสตร์และวิทยาศาสตร์"
+          required
+        />
+      </label>
+      <label className={styles.label}>
+        เบอร์โทรศัพท์
         <input
           type="tel"
           id="phone"
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          className={styles.inputField}
+          className={styles.input}
+          placeholder="เช่น 0812345678"
           required
         />
-      </div>
-      <div className={styles.inputGroup}>
-        <label htmlFor="password" className={styles.label}>รหัสผ่าน</label>
+      </label>
+      <label className={styles.label}>
+        อีเมล
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          className={styles.input}
+          placeholder="example@sisaket.com"
+          required
+        />
+      </label>
+      <label className={styles.label}>
+        รหัสผ่าน
         <input
           type="password"
           id="password"
           name="password"
           value={formData.password}
           onChange={handleChange}
-          className={styles.inputField}
+          className={styles.input}
+          placeholder="•••••••••"
           required
         />
-      </div>
-      <div className={styles.inputGroup}>
-        <label htmlFor="confirmPassword" className={styles.label}>ยืนยันรหัสผ่าน</label>
+      </label>
+      <label className={styles.label}>
+        ยืนยันรหัสผ่าน
         <input
           type="password"
           id="confirmPassword"
           name="confirmPassword"
           value={formData.confirmPassword}
           onChange={handleChange}
-          className={styles.inputField}
+          className={styles.input}
+          placeholder="•••••••••"
           required
         />
-      </div>
+      </label>
       {error && <div className={styles.error}>{error}</div>}
-      <button type="submit" className={styles.submitButton} disabled={loading}>
+      <button type="submit" className={styles.btnPrimary} disabled={loading}>
         {loading ? "กำลังลงทะเบียน..." : "ลงทะเบียน"}
       </button>
     </form>

@@ -1,69 +1,77 @@
 'use client';
 
-import { Home, Users, Square, DollarSign, Wrench, FileText } from 'lucide-react';
+import { Home, DollarSign, Wrench, FileText } from 'lucide-react';
 
-interface StatCard {
+interface StatusCard {
   icon: React.ReactNode;
   label: string;
-  value: string | number;
+  status: string;
   color: string;
+  gradient: string;
 }
 
-const stats: StatCard[] = [
+const statuses: StatusCard[] = [
   {
-    icon: <Home size={24} />,
-    label: 'ห้องทั้งหมด',
-    value: '150',
-    color: '#3B82F6',
-  },
-  {
-    icon: <Users size={24} />,
-    label: 'นักศึกษาพักอยู่',
-    value: '142',
+    icon: <Home size={32} />,
+    label: 'Room Status',
+    status: 'Occupied',
     color: '#10B981',
+    gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
   },
   {
-    icon: <Square size={24} />,
-    label: 'ห้องว่าง',
-    value: '8',
-    color: '#6366F1',
+    icon: <DollarSign size={32} />,
+    label: 'Payment Status',
+    status: 'Paid',
+    color: '#3B82F6',
+    gradient: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
   },
   {
-    icon: <DollarSign size={24} />,
-    label: 'ค่าหอค้างชำระ',
-    value: '5',
+    icon: <Wrench size={32} />,
+    label: 'Maintenance',
+    status: 'No Issues',
     color: '#F59E0B',
+    gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
   },
   {
-    icon: <Wrench size={24} />,
-    label: 'แจ้งซ่อมค้าง',
-    value: '2',
-    color: '#EF4444',
-  },
-  {
-    icon: <FileText size={24} />,
-    label: 'คำขอใหม่',
-    value: '3',
+    icon: <FileText size={32} />,
+    label: 'Announcements',
+    status: '3 New',
     color: '#8B5CF6',
+    gradient: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
   },
 ];
 
 export default function OverviewCards() {
   return (
     <section className="overview-section">
-      <h2 className="section-title">ภาพรวมระบบ</h2>
-      <div className="overview-grid">
-        {stats.map((stat, index) => (
-          <div key={index} className="stat-card">
-            <div className="stat-icon" style={{ color: stat.color }}>
-              {stat.icon}
+      <div className="overview-container">
+        <div className="overview-header">
+          <div className="section-badge">ภาพรวม</div>
+          <h2 className="overview-title">ภาพรวมสถานะ</h2>
+          <p className="overview-subtitle">
+            สถานะปัจจุบันของห้องพักและบริการต่างๆ
+          </p>
+        </div>
+        <div className="overview-grid">
+          {statuses.map((status, index) => (
+            <div
+              key={index}
+              className="overview-card"
+              style={{ '--status-gradient': status.gradient } as React.CSSProperties}
+            >
+              <div className="overview-icon-wrapper">
+                <div className="overview-icon" style={{ background: status.gradient }}>
+                  {status.icon}
+                </div>
+              </div>
+              <div className="overview-content">
+                <p className="overview-label">{status.label}</p>
+                <p className="overview-value">{status.status}</p>
+              </div>
+              <div className="overview-hover-effect"></div>
             </div>
-            <div className="stat-content">
-              <p className="stat-label">{stat.label}</p>
-              <p className="stat-value">{stat.value}</p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

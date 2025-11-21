@@ -564,12 +564,28 @@ button {
   padding: 0.5rem 1.25rem;
   border-radius: 8px;
   transition: all 0.2s;
+  transform: translateY(-14px); /* ขยับขึ้นเพิ่มเติม */
 }
 
 .nav-link.btn-nav:hover {
   background: var(--primary-dark);
   color: white;
-  transform: translateY(-1px);
+  transform: translateY(-20px); /* ขยับขึ้นเพิ่มเมื่อ hover */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Keep header navigation links in normal position (do not translate)
+   This ensures the header items 'ฟีเจอร์', 'เกี่ยวกับ', and the header 'เข้าสู่ระบบ' stay fixed. */
+.landing-nav .nav-link,
+.landing-nav .nav-link.btn-nav {
+  transform: none !important;
+}
+
+.landing-nav .nav-link.btn-nav:hover {
+  /* Keep hover visual (color/box-shadow) but no vertical translation */
+  background: var(--primary-dark);
+  color: white;
+  transform: none !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -655,6 +671,7 @@ button {
   box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
+  transform: translateY(-14px); /* ขยับขึ้นเพิ่มเติม */
 }
 
 .btn-primary::before {
@@ -673,7 +690,7 @@ button {
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px);
+  transform: translateY(-20px);
   box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.25);
   background: #F8FAFC;
 }
@@ -1238,6 +1255,7 @@ button {
   .btn-secondary {
     width: 100%;
     justify-content: center;
+    transform: none; /* ปิดการแปลที่อาจทำให้ปุ่มเต็มความกว้างไม่ตรงตำแหน่ง */
   }
 
   /* Features */

@@ -1,0 +1,29 @@
+'use client';
+
+import Link from 'next/link';
+import { LogIn } from 'lucide-react';
+
+export default function LandingHeader() {
+  return (
+    <header className="landing-header">
+      <div className="landing-header-container">
+        <div className="landing-logo">
+          <h1>SSKRU Dormitory System</h1>
+        </div>
+        <nav className="landing-nav">
+          <Link href="#features" className="nav-link">
+            ฟีเจอร์
+          </Link>
+          <Link href="#about" className="nav-link">
+            เกี่ยวกับ
+          </Link>
+          <Link href="/dashboard" className="nav-link btn-nav">
+            <LogIn size={18} />
+            เข้าสู่ระบบ
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+}
+

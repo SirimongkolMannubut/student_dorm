@@ -7,6 +7,18 @@ declare global {
 
 if (!global.users) {
   global.users = new Map();
+  // เพิ่มข้อมูลจำลองผู้ใช้
+  global.users.set('admin@sisaket.com', {
+    studentId: '6612732129',
+    fullName: 'ศิริมงคล มนูบุตร',
+    email: 'admin@sisaket.com',
+    year: '3',
+    major: 'วิทยาการคอมพิวเตอร์',
+    faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
+    phone: '0812345678',
+    password: 'Admin123!',
+    createdAt: new Date().toISOString()
+  });
 }
 
 const users = global.users;
@@ -42,7 +54,11 @@ export async function POST(request: NextRequest) {
         user: {
           email: data.email,
           fullName: data.fullName,
-          studentId: data.studentId
+          studentId: data.studentId,
+          year: data.year,
+          major: data.major,
+          faculty: data.faculty,
+          phone: data.phone
         }
       },
       { status: 201 }

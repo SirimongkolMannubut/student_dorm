@@ -47,7 +47,15 @@ export default function RegistrationForm({ onSuccess }: Props) {
 
       if (response.ok) {
         const result = await response.json();
-        localStorage.setItem('user', JSON.stringify(result.user));
+        localStorage.setItem('user', JSON.stringify({
+          email: formData.email,
+          fullName: formData.fullName,
+          studentId: formData.studentId,
+          year: formData.year,
+          major: formData.major,
+          faculty: formData.faculty,
+          phone: formData.phone
+        }));
         window.location.href = '/dashboard';
       } else {
         const data = await response.json();

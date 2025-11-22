@@ -2834,7 +2834,7 @@ button {
 
 .table-header {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr 1fr 1fr 1.5fr;
+  grid-template-columns: 1fr 1.5fr 1.2fr 1fr 1fr 2fr;
   gap: 1rem;
   padding: 1rem;
   background: #f8fafc;
@@ -2846,7 +2846,7 @@ button {
 
 .table-row {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr 1fr 1fr 1.5fr;
+  grid-template-columns: 1fr 1.5fr 1.2fr 1fr 1fr 2fr;
   gap: 1rem;
   padding: 1rem;
   background: white;
@@ -3001,6 +3001,74 @@ button {
 
 .download-btn:hover {
   background: #4f46e5;
+}
+
+.details-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #6366f1;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.details-btn:hover {
+  background: #4f46e5;
+}
+
+.delete-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #dc2626;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
+
+.details-section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.details-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row strong {
+  color: #374151;
+  min-width: 120px;
 }
 
 .form-group {

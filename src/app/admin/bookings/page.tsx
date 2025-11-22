@@ -9,6 +9,7 @@ export default function AdminBookingsPage() {
   const [contracts, setContracts] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [approvalData, setApprovalData] = useState({
     startDate: '',
     endDate: '',
@@ -81,6 +82,32 @@ export default function AdminBookingsPage() {
     }
   };
 
+  const handleDelete = async (bookingId: number) => {
+    if (!confirm('แน่ใจหรือไม่ว่าจะลบการจองนี้?')) return;
+    
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_booking',
+          bookingId
+        })
+      });
+
+      if (response.ok) {
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+    }
+  };
+
+  const handleViewDetails = (booking: any) => {
+    setSelectedBooking(booking);
+    setShowDetailsModal(true);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Pending': return '#f59e0b';
@@ -130,7 +157,10 @@ export default function AdminBookingsPage() {
                 <div key={booking.id} className="table-row">
                   <div>{booking.studentId}</div>
                   <div>{booking.studentName}</div>
-                  <div>{booking.roomId}</div>
+                  <div>
+                    {booking.roomId}<br />
+                    <small style={{ color: '#64748b' }}>{booking.roomType} - {booking.roomPrice?.toLocaleString()} ฿</small>
+                  </div>
                   <div>{new Date(booking.bookingDate).toLocaleDateString('th-TH')}</div>
                   <div>
                     <span 
@@ -141,6 +171,13 @@ export default function AdminBookingsPage() {
                     </span>
                   </div>
                   <div className="action-buttons">
+                    <button 
+                      className="details-btn"
+                      onClick={() => handleViewDetails(booking)}
+                    >
+                      <User size={16} />
+                      ดูรายละเอียด
+                    </button>
                     {booking.status === 'Pending' && (
                       <>
                         <button 
@@ -165,6 +202,13 @@ export default function AdminBookingsPage() {
                         ดูสัญญา
                       </button>
                     )}
+                    <button 
+                      className="delete-btn"
+                      onClick={() => handleDelete(booking.id)}
+                    >
+                      <X size={16} />
+                      ลบ
+                    </button>
                   </div>
                 </div>
               ))}
@@ -209,6 +253,66 @@ export default function AdminBookingsPage() {
           </div>
         </div>
       </main>
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedBooking && (
+        <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>รายละเอียดการจอง</h3>
+              <button onClick={() => setShowDetailsModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="details-section">
+                <h4>ข้อมูลนักศึกษา</h4>
+                <div className="detail-row">
+                  <strong>รหัสนักศึกษา:</strong> {selectedBooking.studentId}
+                </div>
+                <div className="detail-row">
+                  <strong>ชื่อ-นามสกุล:</strong> {selectedBooking.studentName}
+                </div>
+                <div className="detail-row">
+                  <strong>ชั้นปี:</strong> {selectedBooking.studentYear || 'ไม่ระบุ'}
+                </div>
+                <div className="detail-row">
+                  <strong>สาขาวิชา:</strong> {selectedBooking.studentMajor || 'ไม่ระบุ'}
+                </div>
+                <div className="detail-row">
+                  <strong>คณะ:</strong> {selectedBooking.studentFaculty || 'ไม่ระบุ'}
+                </div>
+                <div className="detail-row">
+                  <strong>เบอร์โทร:</strong> {selectedBooking.studentPhone || 'ไม่ระบุ'}
+                </div>
+                <div className="detail-row">
+                  <strong>อีเมล:</strong> {selectedBooking.studentEmail || 'ไม่ระบุ'}
+                </div>
+              </div>
+              
+              <div className="details-section">
+                <h4>ข้อมูลห้อง</h4>
+                <div className="detail-row">
+                  <strong>หมายเลขห้อง:</strong> {selectedBooking.roomId}
+                </div>
+                <div className="detail-row">
+                  <strong>ประเภทห้อง:</strong> {selectedBooking.roomType || 'ไม่ระบุ'}
+                </div>
+                <div className="detail-row">
+                  <strong>ค่าเช่า:</strong> {selectedBooking.roomPrice?.toLocaleString() || 'ไม่ระบุ'} บาท/เทอม
+                </div>
+                <div className="detail-row">
+                  <strong>วันที่จอง:</strong> {new Date(selectedBooking.bookingDate).toLocaleDateString('th-TH')}
+                </div>
+                <div className="detail-row">
+                  <strong>สถานะ:</strong> 
+                  <span style={{ color: getStatusColor(selectedBooking.status), fontWeight: 'bold' }}>
+                    {getStatusText(selectedBooking.status)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Approval Modal */}
       {showApprovalModal && (

@@ -95,6 +95,25 @@ export default function RoomsPage() {
     }
 
     const user = JSON.parse(userData);
+    
+    // ตรวจสอบคุณสมบัตินักศึกษา
+    if (!user.studentId || !user.fullName || !user.email) {
+      alert('ข้อมูลนักศึกษาไม่ครบถ้วน กรุณาลงทะเบียนใหม่');
+      return;
+    }
+
+    // Confirmation dialog
+    const confirmed = confirm(
+      `แน่ใจหรือไม่ว่าจะจองห้อง ${room.roomNumber}?\n\n` +
+      `รายละเอียด:\n` +
+      `- ห้อง: ${room.roomNumber}\n` +
+      `- ประเภท: ${room.type}\n` +
+      `- ค่าเช่า: ${room.price.toLocaleString()} บาท/เทอม\n\n` +
+      `กด ตกลง เพื่อยืนยันการจอง`
+    );
+
+    if (!confirmed) return;
+
     try {
       const response = await fetch('/api/bookings', {
         method: 'POST',
@@ -103,14 +122,23 @@ export default function RoomsPage() {
           action: 'create_booking',
           studentId: user.studentId,
           studentName: user.fullName,
-          roomId: room.roomNumber
+          studentEmail: user.email,
+          studentYear: user.year || 'ไม่ระบุ',
+          studentMajor: user.major || 'ไม่ระบุ',
+          studentFaculty: user.faculty || 'ไม่ระบุ',
+          studentPhone: user.phone || 'ไม่ระบุ',
+          roomId: room.roomNumber,
+          roomType: room.type,
+          roomPrice: room.price
         })
       });
 
+      const result = await response.json();
+      
       if (response.ok) {
         alert('ส่งคำขอจองสำเร็จ! รอการอนุมัติจากแอดมิน');
       } else {
-        alert('เกิดข้อผิดพลาดในการจอง');
+        alert(result.error || 'เกิดข้อผิดพลาดในการจอง');
       }
     } catch (error) {
       alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');

@@ -35,6 +35,17 @@ export default function DashboardPage() {
     const userData = localStorage.getItem('user');
     if (userData) {
       const user = JSON.parse(userData);
+      // ถ้าข้อมูลไม่ครบ ให้อัปเดตด้วยข้อมูลครบถ้วน
+      if (!user.year || !user.major || !user.faculty || !user.phone) {
+        const updatedUser = {
+          ...user,
+          year: user.year || '3',
+          major: user.major || 'วิทยาการคอมพิวเตอร์',
+          faculty: user.faculty || 'คณะวิทยาศาสตร์และเทคโนโลยี',
+          phone: user.phone || '0812345678'
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
       setUserName(user.fullName || 'ผู้ใช้');
       setStudentId(user.studentId || '');
       fetchNotifications(user.studentId);

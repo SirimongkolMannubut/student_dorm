@@ -7,26 +7,7 @@ declare global {
 }
 
 if (!global.bookings) {
-  global.bookings = [
-    {
-      id: 1,
-      studentId: '62010001',
-      studentName: 'สมชาย ใจดี',
-      roomId: 'A301',
-      bookingDate: '2025-01-15',
-      status: 'Pending',
-      contractId: null
-    },
-    {
-      id: 2,
-      studentId: '62010002', 
-      studentName: 'สมหญิง รักดี',
-      roomId: 'B205',
-      bookingDate: '2025-01-14',
-      status: 'Approved',
-      contractId: 'CON001'
-    }
-  ];
+  global.bookings = [];
 }
 
 if (!global.contracts) {
@@ -39,7 +20,7 @@ if (!global.contracts) {
       endDate: '2025-07-31',
       rentalFee: 5000,
       paymentStatus: 'Paid',
-      contractUrl: '/contracts/CON001.pdf'
+      contractUrl: '/api/contracts/download/CON001'
     }
   ];
 }
@@ -61,11 +42,38 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
     
     if (data.action === 'create_booking') {
+      // ตรวจสอบคุณสมบัตินักศึกษา
+      if (!data.studentId || !data.studentName || !data.studentEmail) {
+        return NextResponse.json(
+          { error: 'ข้อมูลนักศึกษาไม่ครบถ้วน กรุณาลงทะเบียนใหม่' },
+          { status: 400 }
+        );
+      }
+
+      // ตรวจสอบว่ามีการจองซ้ำหรือไม่
+      const existingBooking = bookings.find(b => 
+        b.studentId === data.studentId && (b.status === 'Pending' || b.status === 'Approved')
+      );
+      
+      if (existingBooking) {
+        return NextResponse.json(
+          { error: 'คุณมีการจองอยู่แล้ว กรุณารอการดำเนินการจากแอดมิน' },
+          { status: 400 }
+        );
+      }
+
       const newBooking = {
         id: bookings.length + 1,
         studentId: data.studentId,
         studentName: data.studentName,
+        studentEmail: data.studentEmail,
+        studentYear: data.studentYear,
+        studentMajor: data.studentMajor,
+        studentFaculty: data.studentFaculty,
+        studentPhone: data.studentPhone,
         roomId: data.roomId,
+        roomType: data.roomType,
+        roomPrice: data.roomPrice,
         bookingDate: new Date().toISOString().split('T')[0],
         status: 'Pending',
         contractId: null
@@ -78,6 +86,17 @@ export async function POST(request: NextRequest) {
     if (data.action === 'approve_booking') {
       const booking = bookings.find(b => b.id === data.bookingId);
       if (booking) {
+        // ตรวจสอบว่ามีสัญญาอยู่แล้วหรือไม่
+        const existingContract = contracts.find(c => 
+          c.studentId === booking.studentId && c.roomId === booking.roomId
+        );
+        
+        if (existingContract) {
+          booking.status = 'Approved';
+          booking.contractId = existingContract.id;
+          return NextResponse.json({ success: true, booking, contract: existingContract });
+        }
+        
         booking.status = 'Approved';
         
         const contractId = `CON${String(contracts.length + 1).padStart(3, '0')}`;
@@ -133,6 +152,14 @@ export async function POST(request: NextRequest) {
         notifications.push(newNotification);
         
         return NextResponse.json({ success: true, booking });
+      }
+    }
+    
+    if (data.action === 'delete_booking') {
+      const bookingIndex = bookings.findIndex(b => b.id === data.bookingId);
+      if (bookingIndex !== -1) {
+        bookings.splice(bookingIndex, 1);
+        return NextResponse.json({ success: true });
       }
     }
     

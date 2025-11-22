@@ -75,17 +75,23 @@ export default function AdminPage() {
           <section className="admin-menu">
             <h2>เมนูจัดการ</h2>
             <div className="admin-menu-grid">
-              {menuItems.map((item, index) => (
-                <button key={index} className="admin-menu-card">
-                  <div className="menu-icon" style={{ backgroundColor: item.color }}>
-                    {item.icon}
-                  </div>
-                  <div className="menu-content">
-                    <h3>{item.label}</h3>
-                    <p>{item.desc}</p>
-                  </div>
-                </button>
-              ))}
+              {menuItems.map((item, index) => {
+                const isStudentMenu = item.label === 'จัดการนักศึกษา';
+                const Component = isStudentMenu ? 'a' : 'button';
+                const props = isStudentMenu ? { href: '/admin/bookings' } : {};
+                
+                return (
+                  <Component key={index} className="admin-menu-card" {...props}>
+                    <div className="menu-icon" style={{ backgroundColor: item.color }}>
+                      {item.icon}
+                    </div>
+                    <div className="menu-content">
+                      <h3>{item.label}</h3>
+                      <p>{item.desc}</p>
+                    </div>
+                  </Component>
+                );
+              })}
             </div>
           </section>
 

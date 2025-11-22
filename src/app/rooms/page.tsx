@@ -87,6 +87,36 @@ export default function RoomsPage() {
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
 
+  const handleReserveRoom = async (room: any) => {
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      alert('กรุณาเข้าสู่ระบบก่อน');
+      return;
+    }
+
+    const user = JSON.parse(userData);
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create_booking',
+          studentId: user.studentId,
+          studentName: user.fullName,
+          roomId: room.roomNumber
+        })
+      });
+
+      if (response.ok) {
+        alert('ส่งคำขอจองสำเร็จ! รอการอนุมัติจากแอดมิน');
+      } else {
+        alert('เกิดข้อผิดพลาดในการจอง');
+      }
+    } catch (error) {
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    }
+  };
+
   const building = buildings.find(b => b.id === selectedBuilding);
   const filteredBuildings = selectedGender ? buildings.filter(b => b.type === selectedGender) : [];
   const filteredRooms = building?.rooms.filter(room => 
@@ -241,7 +271,10 @@ export default function RoomsPage() {
                       ดูรายละเอียด
                     </button>
                     {room.available && (
-                      <button className="reserve-btn">
+                      <button 
+                        className="reserve-btn"
+                        onClick={() => handleReserveRoom(room)}
+                      >
                         จองห้องนี้
                       </button>
                     )}

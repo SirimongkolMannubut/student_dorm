@@ -27,15 +27,63 @@ const recentAnnouncements = [
 
 export default function DashboardPage() {
   const [userName, setUserName] = useState('ผู้ใช้');
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [studentId, setStudentId] = useState('');
 
   useEffect(() => {
-    // ดึงข้อมูลผู้ใช้จาก localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
       const user = JSON.parse(userData);
       setUserName(user.fullName || 'ผู้ใช้');
+      setStudentId(user.studentId || '');
+      fetchNotifications(user.studentId);
     }
   }, []);
+
+  const fetchNotifications = async (studentId: string) => {
+    try {
+      const response = await fetch(`/api/notifications?studentId=${studentId}`);
+      const data = await response.json();
+      setNotifications(data.notifications || []);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const markAsRead = async (notificationId: number) => {
+    try {
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'mark_read',
+          notificationId
+        })
+      });
+      fetchNotifications(studentId);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const downloadContract = async (contractUrl: string, contractId: string) => {
+    try {
+      // จำลองการดาวน์โหลดไฟล์ PDF
+      const link = document.createElement('a');
+      link.href = contractUrl;
+      link.download = `สัญญาเช่า_${contractId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      alert('เริ่มดาวน์โหลดสัญญาเช่าแล้ว');
+    } catch (error) {
+      alert('เกิดข้อผิดพลาดในการดาวน์โหลด');
+    }
+  };
+
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
 
   return (
     <div className="simple-dashboard">
@@ -45,7 +93,17 @@ export default function DashboardPage() {
           <div className="landing-logo">
             <h1>SSKRU Dormitory System</h1>
           </div>
-          <nav className="landing-nav">
+          <nav className="landing-nav" style={{ gap: '0.25rem' }}>
+            <button 
+              type="button" 
+              className="nav-link notification-btn"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <Bell size={18} />
+              {unreadCount > 0 && (
+                <span className="notification-badge">{unreadCount}</span>
+              )}
+            </button>
             <button type="button" className="nav-link profile-btn">
               <User size={18} />
               {userName}
@@ -124,8 +182,65 @@ export default function DashboardPage() {
             </div>
             <button className="view-all-btn">ดูประกาศทั้งหมด</button>
           </section>
+
+          {/* Notifications Dropdown */}
+          {showNotifications && (
+            <div className="notifications-dropdown">
+              <div className="notifications-header">
+                <h3>การแจ้งเตือน</h3>
+                <button 
+                  className="close-notifications"
+                  onClick={() => setShowNotifications(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="notifications-list">
+                {notifications.length > 0 ? (
+                  notifications.map((notification: any) => (
+                    <div 
+                      key={notification.id} 
+                      className={`notification-item ${!notification.read ? 'unread' : ''}`}
+                      onClick={() => markAsRead(notification.id)}
+                    >
+                      <div className="notification-content">
+                        <h4>{notification.title}</h4>
+                        <p>{notification.message}</p>
+                        <span className="notification-time">
+                          {new Date(notification.createdAt).toLocaleString('th-TH')}
+                        </span>
+                      </div>
+                      {notification.contractUrl && (
+                        <button 
+                          className="download-contract-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadContract(notification.contractUrl, notification.contractId);
+                          }}
+                        >
+                          ดาวน์โหลดสัญญา
+                        </button>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-notifications">
+                    <p>ไม่มีการแจ้งเตือน</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </main>
+      
+      {/* Overlay */}
+      {showNotifications && (
+        <div 
+          className="notifications-overlay"
+          onClick={() => setShowNotifications(false)}
+        />
+      )}
     </div>
   );
 }

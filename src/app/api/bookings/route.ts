@@ -83,11 +83,26 @@ export async function POST(request: NextRequest) {
           endDate: data.endDate,
           rentalFee: data.rentalFee,
           paymentStatus: 'Pending',
-          contractUrl: `/contracts/${contractId}.pdf`
+          contractUrl: `/api/contracts/download/${contractId}`
         };
         
         contracts.push(newContract);
         booking.contractId = contractId;
+        
+        // สร้างการแจ้งเตือน
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create_notification',
+            studentId: booking.studentId,
+            type: 'booking_approved',
+            title: `การจองห้อง ${booking.roomId} ได้รับการอนุมัติ`,
+            message: `ยินดีด้วย! การจองห้อง ${booking.roomId} ของคุณได้รับการอนุมัติแล้ว กรุณาสามารถดาวน์โหลดสัญญาเช่าได้`,
+            contractId: contractId,
+            contractUrl: newContract.contractUrl
+          })
+        });
         
         return NextResponse.json({ success: true, booking, contract: newContract });
       }
@@ -97,6 +112,20 @@ export async function POST(request: NextRequest) {
       const booking = bookings.find(b => b.id === data.bookingId);
       if (booking) {
         booking.status = 'Rejected';
+        
+        // สร้างการแจ้งเตือน
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create_notification',
+            studentId: booking.studentId,
+            type: 'booking_rejected',
+            title: `การจองห้อง ${booking.roomId} ถูกปฏิเสธ`,
+            message: `ขออภัย การจองห้อง ${booking.roomId} ของคุณถูกปฏิเสธ กรุณาสามารถเลือกห้องอื่นได้`
+          })
+        });
+        
         return NextResponse.json({ success: true, booking });
       }
     }

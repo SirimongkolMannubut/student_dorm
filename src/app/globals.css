@@ -1782,6 +1782,143 @@ button {
   background: #2563eb;
 }
 
+/* Notifications Dropdown */
+.notifications-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+}
+
+.notifications-dropdown {
+  position: fixed;
+  top: 80px;
+  right: 2rem;
+  width: 400px;
+  max-height: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  z-index: 999;
+  overflow: hidden;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.notifications-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.close-notifications {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.close-notifications:hover {
+  background: #cbd5e1;
+  color: #1e293b;
+}
+
+.notifications-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item:hover {
+  background: #f8fafc;
+}
+
+.notification-item.unread {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+}
+
+.notification-content h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.notification-content p {
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.download-contract-btn {
+  background: #10b981;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.download-contract-btn:hover {
+  background: #059669;
+}
+
+.no-notifications {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.no-notifications p {
+  margin: 0;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .notifications-dropdown {
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
 
@@ -1816,6 +1953,44 @@ button {
     align-items: flex-start;
     gap: 0.5rem;
   }
+}
+
+/* Notification Button */
+.notification-btn {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border: 2px solid var(--border-color) !important;
+  padding: 0.5rem !important;
+  border-radius: 8px !important;
+  transition: all 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.notification-btn:hover {
+  background: var(--background) !important;
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  transform: none !important;
+}
+
+.notification-btn .notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1;
 }
 
 /* Profile Button */

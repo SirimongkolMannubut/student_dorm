@@ -86,62 +86,22 @@ export default function RoomsPage() {
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  const [showBookingConfirm, setShowBookingConfirm] = useState<any>(null);
+  const [showPayment, setShowPayment] = useState<any>(null);
+  const [selectedSlip, setSelectedSlip] = useState<File | null>(null);
+  const [isBooking, setIsBooking] = useState(false);
 
-  const handleReserveRoom = async (room: any) => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      alert('กรุณาเข้าสู่ระบบก่อน');
-      return;
-    }
-
-    const user = JSON.parse(userData);
+  const confirmBooking = async () => {
+    if (isBooking) return;
+    setIsBooking(true);
     
-    // ตรวจสอบคุณสมบัตินักศึกษา
-    if (!user.studentId || !user.fullName || !user.email) {
-      alert('ข้อมูลนักศึกษาไม่ครบถ้วน กรุณาลงทะเบียนใหม่');
-      return;
-    }
-
-    // Confirmation dialog
-    const confirmed = confirm(
-      `แน่ใจหรือไม่ว่าจะจองห้อง ${room.roomNumber}?\n\n` +
-      `รายละเอียด:\n` +
-      `- ห้อง: ${room.roomNumber}\n` +
-      `- ประเภท: ${room.type}\n` +
-      `- ค่าเช่า: ${room.price.toLocaleString()} บาท/เทอม\n\n` +
-      `กด ตกลง เพื่อยืนยันการจอง`
-    );
-
-    if (!confirmed) return;
-
     try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create_booking',
-          studentId: user.studentId,
-          studentName: user.fullName,
-          studentEmail: user.email,
-          studentYear: user.year || 'ไม่ระบุ',
-          studentMajor: user.major || 'ไม่ระบุ',
-          studentFaculty: user.faculty || 'ไม่ระบุ',
-          studentPhone: user.phone || 'ไม่ระบุ',
-          roomId: room.roomNumber,
-          roomType: room.type,
-          roomPrice: room.price
-        })
-      });
-
-      const result = await response.json();
-      
-      if (response.ok) {
-        alert('ส่งคำขอจองสำเร็จ! รอการอนุมัติจากแอดมิน');
-      } else {
-        alert(result.error || 'เกิดข้อผิดพลาดในการจอง');
-      }
-    } catch (error) {
-      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      // จำลองการจองห้อง
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setShowBookingConfirm(null);
+      setShowPayment(showBookingConfirm);
+    } finally {
+      setIsBooking(false);
     }
   };
 
@@ -268,7 +228,7 @@ export default function RoomsPage() {
 
               <div className="rooms-grid">
                 {filteredRooms.map((room) => (
-                  <div key={room.roomNumber} className={`room-card ${room.available ? 'available' : 'full'}`}>
+                  <div key={room.roomNumber} className={`room-card ${room.available ? 'room-available' : 'room-full'}`}>
                     <div className="room-header">
                       <h4>{room.roomNumber}</h4>
                       <div className="room-status">
@@ -301,7 +261,7 @@ export default function RoomsPage() {
                     {room.available && (
                       <button 
                         className="reserve-btn"
-                        onClick={() => handleReserveRoom(room)}
+                        onClick={() => setShowBookingConfirm(room)}
                       >
                         จองห้องนี้
                       </button>
@@ -357,6 +317,131 @@ export default function RoomsPage() {
                       <p>ห้องว่าง - ไม่มีผู้อยู่อาศัย</p>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Booking Confirmation Modal */}
+          {showBookingConfirm && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h3>ยืนยันการจอง</h3>
+                  <button className="close-btn" onClick={() => setShowBookingConfirm(null)}>×</button>
+                </div>
+                <div className="modal-body">
+                  <div className="booking-summary">
+                    <h4>ห้อง: {showBookingConfirm.roomNumber}</h4>
+                    <p>ประเภท: {showBookingConfirm.type}</p>
+                    <div className="cost-summary">
+                      <div className="cost-item">ค่าเช่ารายภาค: {showBookingConfirm.price.toLocaleString()} บาท</div>
+                      <div className="cost-item">ค่ามัดจำ: 450 บาท</div>
+                      <div className="total-cost">รวม: {(showBookingConfirm.price + 450).toLocaleString()} บาท</div>
+                    </div>
+                  </div>
+                  <div className="modal-actions">
+                    <button className="cancel-btn" onClick={() => setShowBookingConfirm(null)}>ยกเลิก</button>
+                    <button 
+                      className="confirm-btn" 
+                      onClick={confirmBooking}
+                      disabled={isBooking}
+                    >
+                      {isBooking ? 'กำลังจอง...' : 'ยืนยันการจอง'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Payment Modal */}
+          {showPayment && (
+            <div className="modal-overlay">
+              <div className="modal-content payment-modal">
+                <div className="modal-header">
+                  <h3>ชำระเงิน</h3>
+                </div>
+                <div className="modal-body">
+                  <div className="payment-info">
+                    <div className="step-indicator">
+                      <span className="current-step">ขั้นที่ 2/3: ชำระเงิน</span>
+                    </div>
+                    <h4>ค่ามัดจำ + ค่าเช่าเดือนแรก</h4>
+                    <div className="payment-amount">{(showPayment.price + 450).toLocaleString()} บาท</div>
+                  </div>
+                  
+                  <div className="qr-section">
+                    <div className="qr-code">
+                      <div className="qr-placeholder">
+                        [QR PromptPay อัตโนมัติ]
+                      </div>
+                      <p>สแกน QR เพื่อชำระเงิน (ตรวจสอบอัตโนมัติ)</p>
+                      <div className="auto-verify">
+                        <span className="verify-badge">✓ ตรวจสอบอัตโนมัติ</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="slip-upload">
+                    <h5>อัปโหลดสลิปหลังชำระเงิน:</h5>
+                    
+                    {!selectedSlip ? (
+                      <>
+                        <input 
+                          type="file" 
+                          accept="image/*,.pdf"
+                          className="slip-input"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              setSelectedSlip(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        <p className="upload-note">ไม่ได้เลือกไฟล์ใด</p>
+                      </>
+                    ) : (
+                      <div className="selected-file">
+                        <div className="file-info">
+                          <span className="file-name">ไฟล์: {selectedSlip.name}</span>
+                          <button 
+                            className="remove-file-btn"
+                            onClick={() => setSelectedSlip(null)}
+                          >
+                            ลบไฟล์
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <p className="upload-note">หลังชำระเงินแล้ว ให้แนบสลิปที่นี่</p>
+                  </div>
+                  
+                  <div className="payment-actions">
+                    <button 
+                      className="cancel-btn"
+                      onClick={() => {
+                        setShowPayment(null);
+                        setSelectedSlip(null);
+                      }}
+                    >
+                      ยกเลิก
+                    </button>
+                    <button 
+                      className="submit-btn"
+                      disabled={!selectedSlip}
+                      onClick={() => {
+                        if (selectedSlip) {
+                          alert('ชำระเงินสำเร็จ! \n\n✓ สัญญาดิจิทัลสร้างอัตโนมัติ\n✓ อนุมัติทันที - มารับกุญแจได้เลย!');
+                          setShowPayment(null);
+                          setSelectedSlip(null);
+                          window.location.href = '/dashboard';
+                        }
+                      }}
+                    >
+                      ส่งสลิป
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

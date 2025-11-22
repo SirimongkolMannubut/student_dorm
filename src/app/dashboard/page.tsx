@@ -267,10 +267,17 @@ export default function DashboardPage() {
               <div className="profile-menu">
                 <button 
                   className="profile-menu-item"
-                  onClick={() => downloadContract()}
+                  onClick={() => window.location.href = '/profile'}
+                >
+                  <User size={18} />
+                  ข้อมูลส่วนตัว & สัญญา
+                </button>
+                <button 
+                  className="profile-menu-item"
+                  onClick={() => window.location.href = '/contract'}
                 >
                   <FileText size={18} />
-                  ดาวน์โหลดสัญญาเช่า
+                  สัญญาดิจิทัล
                 </button>
                 <button 
                   className="profile-menu-item logout"

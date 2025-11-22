@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState('ผู้ใช้');
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [studentId, setStudentId] = useState('');
 
   useEffect(() => {
@@ -78,12 +79,11 @@ export default function DashboardPage() {
     }
   };
 
-  const downloadContract = async (contractUrl: string, contractId: string) => {
+  const downloadContract = async (contractUrl?: string, contractId?: string) => {
     try {
-      // จำลองการดาวน์โหลดไฟล์ PDF
       const link = document.createElement('a');
-      link.href = contractUrl;
-      link.download = `สัญญาเช่า_${contractId}.pdf`;
+      link.href = contractUrl || '/api/contracts/download/default';
+      link.download = `สัญญาเช่าห้องพักหอพักมหาวิทยาลัยราชภัฏศรีสะเกษ.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -92,6 +92,11 @@ export default function DashboardPage() {
     } catch (error) {
       alert('เกิดข้อผิดพลาดในการดาวน์โหลด');
     }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('user');
+    window.location.href = '/login';
   };
 
   const unreadCount = notifications.filter((n: any) => !n.read).length;
@@ -115,7 +120,11 @@ export default function DashboardPage() {
                 <span className="notification-badge">{unreadCount}</span>
               )}
             </button>
-            <button type="button" className="nav-link profile-btn">
+            <button 
+              type="button" 
+              className="nav-link profile-btn"
+              onClick={() => setShowProfile(!showProfile)}
+            >
               <User size={18} />
               {userName}
             </button>
@@ -242,14 +251,47 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+
+          {/* Profile Dropdown */}
+          {showProfile && (
+            <div className="profile-dropdown">
+              <div className="profile-header">
+                <h3>โปรไฟล์</h3>
+                <button 
+                  className="close-profile"
+                  onClick={() => setShowProfile(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="profile-menu">
+                <button 
+                  className="profile-menu-item"
+                  onClick={() => downloadContract()}
+                >
+                  <FileText size={18} />
+                  ดาวน์โหลดสัญญาเช่า
+                </button>
+                <button 
+                  className="profile-menu-item logout"
+                  onClick={logout}
+                >
+                  ออกจากระบบ
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
       
       {/* Overlay */}
-      {showNotifications && (
+      {(showNotifications || showProfile) && (
         <div 
           className="notifications-overlay"
-          onClick={() => setShowNotifications(false)}
+          onClick={() => {
+            setShowNotifications(false);
+            setShowProfile(false);
+          }}
         />
       )}
     </div>

@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
           title: `การจองห้อง ${booking.roomId} ได้รับการอนุมัติ`,
           message: `ยินดีด้วย! การจองห้อง ${booking.roomId} ของคุณได้รับการอนุมัติแล้ว กรุณาสามารถดาวน์โหลดสัญญาเช่าได้`,
           contractId: contractId,
-          contractUrl: newContract.contractUrl,
+          contractUrl: `/contracts/สัญญาเช่าห้องพัก%20หอพักมหาวิทยาลัยราชภัฏศรีสะเกษ.pdf`,
           read: false,
           createdAt: new Date().toISOString()
         };

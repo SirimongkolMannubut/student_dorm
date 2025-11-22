@@ -1,39 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readFile } from 'fs/promises';
+import path from 'path';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { contractId: string } }
+  context: { params: Promise<{ contractId: string }> }
 ) {
   try {
+    const params = await context.params;
     const contractId = params.contractId;
     
-    const contracts = global.contracts || [];
-    const contract = contracts.find((c: any) => c.id === contractId);
+    // อ่านไฟล์ PDF จาก public/contracts
+    const filePath = path.join(process.cwd(), 'public', 'contracts', 'สัญญาเช่าห้องพักหอพักมหาวิทยาลัยราชภัฏศรีสะเกษ.pdf');
+    const fileBuffer = await readFile(filePath);
     
-    if (!contract) {
-      return NextResponse.json({ error: 'Contract not found' }, { status: 404 });
-    }
-
-    const users = global.users || new Map();
-    const userArray = Array.from(users.values());
-    const user = userArray.find((u: any) => u.studentId === contract.studentId);
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const contractContent = generateContractHTML(contract, user);
-    
-    return new NextResponse(contractContent, {
+    // ส่งไฟล์ PDF
+    return new NextResponse(fileBuffer, {
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Content-Disposition': `attachment; filename="สัญญาเช่า_${contractId}.html"`
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="สัญญาเช่าห้องพักหอพักมหาวิทยาลัยราชภัฏศรีสะเกษ.pdf"'
       }
     });
     
   } catch (error) {
-    console.error('Error generating contract:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error accessing contract:', error);
+    return NextResponse.json({ error: 'Contract not found' }, { status: 404 });
   }
 }
 
@@ -168,3 +159,4 @@ function numberToThaiText(num: number): string {
   if (num === 11000) return 'หนึ่งหมื่นหนึ่งพันบาทถ้วน';
   return `${num.toLocaleString()}บาทถ้วน`;
 }
+

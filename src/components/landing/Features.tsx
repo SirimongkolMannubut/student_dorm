@@ -47,10 +47,7 @@ const features = [
     gradient: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
   },
 ];
-import { useLoginModal } from '../LoginModalContext';
-
 export default function Features() {
-  const { open } = useLoginModal();
   return (
     <main className="home-page">
       {/* Hero Section */}
@@ -75,7 +72,7 @@ export default function Features() {
               ชำระค่าเช่า และติดตามสถานะหอพักอย่างมีประสิทธิภาพ
             </p>
             <div className="hero-actions">
-              <button type="button" className="btn-primary" onClick={() => open()}>
+              <button type="button" className="btn-primary" onClick={() => window.location.href = '/login'}>
                 เข้าสู่ระบบ
                 <ArrowRight size={20} />
               </button>

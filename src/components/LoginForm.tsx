@@ -35,53 +35,60 @@ export default function LoginForm({ onSuccess, initialUsername }: Props) {
       }
     }
   }, [initialUsername]);
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!email || !password) {
       setError("กรุณากรอกอีเมล/รหัสนักศึกษา และรหัสผ่าน");
       return;
     }
-    // simple validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email.includes('@') && !emailRegex.test(email)) {
-      setError('รูปแบบอีเมลไม่ถูกต้อง');
-      return;
-    }
-    if (password.length < 6) {
-      setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
-      return;
-    }
+    
     setLoading(true);
-    try {
-      const resp = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await resp.json();
-      setLoading(false);
-      if (!resp.ok) {
-        setError(data?.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
-        return;
-      }
-      // persist remember
-      try {
-        if (remember) {
-          localStorage.setItem('login_remember', JSON.stringify({ email, remember: true }));
+    
+    // จำลองการเข้าสู่ระบบ
+    setTimeout(() => {
+      let userData;
+      
+      // ตรวจสอบว่าเป็น admin หรือนักศึกษา
+      if (email === 'admin@sskru.ac.th' && password === 'admin123') {
+        userData = {
+          role: 'admin',
+          fullName: 'ผู้ดูแลระบบ',
+          email: 'admin@sskru.ac.th'
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        router.push('/admin');
+      } else {
+        // นักศึกษา - ใช้ข้อมูลจำลอง
+        userData = {
+          studentId: email.includes('@') ? '661048827' : email,
+          fullName: 'น.ส.สมคิด พลหาญ',
+          email: email.includes('@') ? email : `${email}@sskru.ac.th`,
+          year: '3',
+          major: 'วิทยาการคอมพิวเตอร์',
+          faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
+          phone: '0812345678',
+          roomStatus: 'none',
+          role: 'student'
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        if (onSuccess) {
+          onSuccess();
         } else {
-          localStorage.removeItem('login_remember');
+          router.push('/dashboard');
         }
-      } catch (e) {}
-      if (onSuccess) {
-        onSuccess();
-        return;
       }
-      router.push('/dashboard');
-    } catch (err) {
+      
+      // บันทึกการจดจำ
+      if (remember) {
+        localStorage.setItem('login_remember', JSON.stringify({ email, remember: true }));
+      } else {
+        localStorage.removeItem('login_remember');
+      }
+      
       setLoading(false);
-      setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
-    }
+    }, 1000);
   }
 
   return (

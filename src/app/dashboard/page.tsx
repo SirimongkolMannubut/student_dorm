@@ -3,12 +3,7 @@
 import { Home, CreditCard, Wrench, FileText, User, Bell, Calendar, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const quickStats = [
-  { label: 'ห้องของฉัน', value: 'A-301', icon: <Home size={20} />, color: '#3B82F6' },
-  { label: 'ค่าเช่าเดือนนี้', value: '3,500 ฿', icon: <CreditCard size={20} />, color: '#10B981' },
-  { label: 'แจ้งซ่อม', value: '2 รายการ', icon: <Wrench size={20} />, color: '#F59E0B' },
-  { label: 'ประกาศใหม่', value: '5 รายการ', icon: <Bell size={20} />, color: '#8B5CF6' },
-];
+
 
 const menuItems = [
   { icon: <Home size={24} />, label: 'ห้องของฉัน', desc: 'ดูข้อมูลห้องพัก', color: '#3B82F6' },
@@ -31,52 +26,66 @@ export default function DashboardPage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [studentId, setStudentId] = useState('');
+  const [quickStats, setQuickStats] = useState([
+    { label: 'ห้องของฉัน', value: 'ยังไม่ได้เลือกห้อง', icon: <Home size={20} />, color: '#94A3B8' },
+    { label: 'ค่าเช่าเดือนนี้', value: '-', icon: <CreditCard size={20} />, color: '#94A3B8' },
+    { label: 'แจ้งซ่อม', value: '-', icon: <Wrench size={20} />, color: '#94A3B8' },
+    { label: 'ประกาศใหม่', value: '5 รายการ', icon: <Bell size={20} />, color: '#8B5CF6' },
+  ]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const userData = localStorage.getItem('user');
     if (userData) {
       const user = JSON.parse(userData);
-      // ถ้าข้อมูลไม่ครบ ให้อัปเดตด้วยข้อมูลครบถ้วน
-      if (!user.year || !user.major || !user.faculty || !user.phone) {
-        const updatedUser = {
-          ...user,
-          year: user.year || '3',
-          major: user.major || 'วิทยาการคอมพิวเตอร์',
-          faculty: user.faculty || 'คณะวิทยาศาสตร์และเทคโนโลยี',
-          phone: user.phone || '0812345678'
-        };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-      }
       setUserName(user.fullName || 'ผู้ใช้');
       setStudentId(user.studentId || '');
+      
+      // อัปเดต quickStats ตามสถานะห้อง
+      updateQuickStats(user);
       fetchNotifications(user.studentId);
     }
   }, []);
-
-  const fetchNotifications = async (studentId: string) => {
-    try {
-      const response = await fetch(`/api/notifications?studentId=${studentId}`);
-      const data = await response.json();
-      setNotifications(data.notifications || []);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+  
+  const updateQuickStats = (user) => {
+    const roomStatus = user.roomStatus || 'none';
+    const assignedRoom = user.assignedRoom || null;
+    
+    if (roomStatus === 'approved' && assignedRoom) {
+      setQuickStats([
+        { label: 'ห้องของฉัน', value: assignedRoom, icon: <Home size={20} />, color: '#3B82F6' },
+        { label: 'ค่าเช่าเดือนนี้', value: '3,500 ฿', icon: <CreditCard size={20} />, color: '#10B981' },
+        { label: 'แจ้งซ่อม', value: '2 รายการ', icon: <Wrench size={20} />, color: '#F59E0B' },
+        { label: 'ประกาศใหม่', value: '5 รายการ', icon: <Bell size={20} />, color: '#8B5CF6' },
+      ]);
+    } else {
+      setQuickStats([
+        { label: 'ห้องของฉัน', value: 'ยังไม่ได้เลือกห้อง', icon: <Home size={20} />, color: '#94A3B8' },
+        { label: 'ค่าเช่าเดือนนี้', value: '-', icon: <CreditCard size={20} />, color: '#94A3B8' },
+        { label: 'แจ้งซ่อม', value: '-', icon: <Wrench size={20} />, color: '#94A3B8' },
+        { label: 'ประกาศใหม่', value: '5 รายการ', icon: <Bell size={20} />, color: '#8B5CF6' },
+      ]);
     }
   };
 
-  const markAsRead = async (notificationId: number) => {
-    try {
-      await fetch('/api/notifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'mark_read',
-          notificationId
-        })
-      });
-      fetchNotifications(studentId);
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
+  const fetchNotifications = (studentId: string) => {
+    if (typeof window === 'undefined') return;
+    
+    const allNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    const userNotifications = allNotifications.filter(n => n.studentId === studentId);
+    setNotifications(userNotifications);
+  };
+
+  const markAsRead = (notificationId: number) => {
+    if (typeof window === 'undefined') return;
+    
+    const allNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    const updatedNotifications = allNotifications.map(n => 
+      n.id === notificationId ? { ...n, read: true } : n
+    );
+    localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+    fetchNotifications(studentId);
   };
 
   const downloadContract = async (contractUrl?: string, contractId?: string) => {

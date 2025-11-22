@@ -85,17 +85,23 @@ export default function DashboardPage() {
           <section className="menu-section">
             <h3>เมนูหลัก</h3>
             <div className="menu-grid">
-              {menuItems.map((item, index) => (
-                <button key={index} className="menu-card" style={{ '--accent-color': item.color } as React.CSSProperties}>
-                  <div className="menu-icon" style={{ backgroundColor: item.color }}>
-                    {item.icon}
-                  </div>
-                  <div className="menu-content">
-                    <h4>{item.label}</h4>
-                    <p>{item.desc}</p>
-                  </div>
-                </button>
-              ))}
+              {menuItems.map((item, index) => {
+                const isRoomMenu = item.label === 'ห้องของฉัน';
+                const Component = isRoomMenu ? 'a' : 'button';
+                const props = isRoomMenu ? { href: '/rooms' } : {};
+                
+                return (
+                  <Component key={index} className="menu-card" style={{ '--accent-color': item.color } as React.CSSProperties} {...props}>
+                    <div className="menu-icon" style={{ backgroundColor: item.color }}>
+                      {item.icon}
+                    </div>
+                    <div className="menu-content">
+                      <h4>{item.label}</h4>
+                      <p>{item.desc}</p>
+                    </div>
+                  </Component>
+                );
+              })}
             </div>
           </section>
 

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 declare global {
   var bookings: any[] | undefined;
   var contracts: any[] | undefined;
+  var notifications: any[] | undefined;
 }
 
 if (!global.bookings) {
@@ -43,8 +44,13 @@ if (!global.contracts) {
   ];
 }
 
+if (!global.notifications) {
+  global.notifications = [];
+}
+
 const bookings = global.bookings;
 const contracts = global.contracts;
+const notifications = global.notifications;
 
 export async function GET() {
   return NextResponse.json({ bookings, contracts });
@@ -90,19 +96,18 @@ export async function POST(request: NextRequest) {
         booking.contractId = contractId;
         
         // สร้างการแจ้งเตือน
-        await fetch('/api/notifications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'create_notification',
-            studentId: booking.studentId,
-            type: 'booking_approved',
-            title: `การจองห้อง ${booking.roomId} ได้รับการอนุมัติ`,
-            message: `ยินดีด้วย! การจองห้อง ${booking.roomId} ของคุณได้รับการอนุมัติแล้ว กรุณาสามารถดาวน์โหลดสัญญาเช่าได้`,
-            contractId: contractId,
-            contractUrl: newContract.contractUrl
-          })
-        });
+        const newNotification = {
+          id: notifications.length + 1,
+          studentId: booking.studentId,
+          type: 'booking_approved',
+          title: `การจองห้อง ${booking.roomId} ได้รับการอนุมัติ`,
+          message: `ยินดีด้วย! การจองห้อง ${booking.roomId} ของคุณได้รับการอนุมัติแล้ว กรุณาสามารถดาวน์โหลดสัญญาเช่าได้`,
+          contractId: contractId,
+          contractUrl: newContract.contractUrl,
+          read: false,
+          createdAt: new Date().toISOString()
+        };
+        notifications.push(newNotification);
         
         return NextResponse.json({ success: true, booking, contract: newContract });
       }
@@ -114,17 +119,18 @@ export async function POST(request: NextRequest) {
         booking.status = 'Rejected';
         
         // สร้างการแจ้งเตือน
-        await fetch('/api/notifications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'create_notification',
-            studentId: booking.studentId,
-            type: 'booking_rejected',
-            title: `การจองห้อง ${booking.roomId} ถูกปฏิเสธ`,
-            message: `ขออภัย การจองห้อง ${booking.roomId} ของคุณถูกปฏิเสธ กรุณาสามารถเลือกห้องอื่นได้`
-          })
-        });
+        const newNotification = {
+          id: notifications.length + 1,
+          studentId: booking.studentId,
+          type: 'booking_rejected',
+          title: `การจองห้อง ${booking.roomId} ถูกปฏิเสธ`,
+          message: `ขออภัย การจองห้อง ${booking.roomId} ของคุณถูกปฏิเสธ กรุณาสามารถเลือกห้องอื่นได้`,
+          contractId: null,
+          contractUrl: null,
+          read: false,
+          createdAt: new Date().toISOString()
+        };
+        notifications.push(newNotification);
         
         return NextResponse.json({ success: true, booking });
       }

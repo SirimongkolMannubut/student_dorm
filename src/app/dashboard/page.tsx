@@ -1,6 +1,7 @@
 'use client';
 
 import { Home, CreditCard, Wrench, FileText, User, Bell, Calendar, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const quickStats = [
   { label: 'ห้องของฉัน', value: 'A-301', icon: <Home size={20} />, color: '#3B82F6' },
@@ -25,6 +26,17 @@ const recentAnnouncements = [
 ];
 
 export default function DashboardPage() {
+  const [userName, setUserName] = useState('ผู้ใช้');
+
+  useEffect(() => {
+    // ดึงข้อมูลผู้ใช้จาก localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserName(user.fullName || 'ผู้ใช้');
+    }
+  }, []);
+
   return (
     <div className="simple-dashboard">
       {/* Header */}
@@ -34,9 +46,9 @@ export default function DashboardPage() {
             <h1>SSKRU Dormitory System</h1>
           </div>
           <nav className="landing-nav">
-            <button type="button" className="nav-link btn-nav">
+            <button type="button" className="nav-link profile-btn">
               <User size={18} />
-              โปรไฟล์
+              {userName}
             </button>
           </nav>
         </div>

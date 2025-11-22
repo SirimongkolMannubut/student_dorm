@@ -46,7 +46,9 @@ export default function RegistrationForm({ onSuccess }: Props) {
       });
 
       if (response.ok) {
-        onSuccess(formData.email);
+        const result = await response.json();
+        localStorage.setItem('user', JSON.stringify(result.user));
+        window.location.href = '/dashboard';
       } else {
         const data = await response.json();
         setError(data.error || "เกิดข้อผิดพลาดในการลงทะเบียน");

@@ -1818,6 +1818,28 @@ button {
   }
 }
 
+/* Profile Button */
+.profile-btn {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: 2px solid var(--border-color) !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.profile-btn:hover {
+  background: var(--background) !important;
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  transform: none !important;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
 /* Landing Footer */
 .landing-footer {
   background: var(--primary-dark);

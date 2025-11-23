@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Users, Building, CreditCard, Wrench, FileText, Settings, BarChart3, Bell, LogOut } from 'lucide-react';
+import AdminHeader from '../../components/AdminHeader';
+import '../../styles/admin.css';
 
 const adminStats = [
   { label: 'นักศึกษาทั้งหมด', value: '1,247', icon: <Users size={24} />, color: '#3b82f6' },
@@ -29,26 +31,7 @@ const recentActivities = [
 export default function AdminPage() {
   return (
     <div className="admin-page">
-      {/* Header */}
-      <header className="admin-header">
-        <div className="admin-header-container">
-          <div className="admin-logo">
-            <h1>Admin Panel - SSKRU Dormitory</h1>
-          </div>
-          <div className="admin-nav">
-            <button className="notification-btn">
-              <Bell size={20} />
-              <span className="notification-badge">5</span>
-            </button>
-            <div className="admin-profile">
-              <span>ผู้ดูแลระบบ</span>
-              <button className="logout-btn">
-                <LogOut size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AdminHeader />
 
       {/* Main Content */}
       <main className="admin-main">

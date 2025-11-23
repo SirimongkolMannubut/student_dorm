@@ -32,7 +32,9 @@ export default function PaymentHistoryPage() {
   }, []);
 
   const loadPaymentHistory = (studentId: string) => {
-    // จำลองข้อมูลประวัติการชำระเงิน
+    // ตรวจสอบการจองห้องที่รอชำระ
+    const pendingBooking = localStorage.getItem('pendingBooking');
+    
     const mockHistory: PaymentRecord[] = [
       {
         id: 1,
@@ -64,6 +66,20 @@ export default function PaymentHistoryPage() {
         method: '-'
       }
     ];
+    
+    // เพิ่มการจองห้องที่รอชำระ
+    if (pendingBooking) {
+      const booking = JSON.parse(pendingBooking);
+      mockHistory.unshift({
+        id: 0,
+        month: 'การจองห้องใหม่',
+        amount: booking.totalAmount,
+        type: `ห้อง ${booking.roomNumber} - ${booking.roomType} (ค่ามัดจำ + ค่าเช่าเดือนแรก)`,
+        status: 'pending',
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        method: '-'
+      });
+    }
     
     setPaymentHistory(mockHistory);
   };
@@ -214,6 +230,21 @@ export default function PaymentHistoryPage() {
                       {getStatusIcon(payment.status)}
                       <span>{getStatusText(payment.status)}</span>
                     </div>
+                    {payment.status === 'pending' && (
+                      <button 
+                        className="pay-btn"
+                        onClick={() => {
+                          if (payment.id === 0) {
+                            window.location.href = '/payment';
+                          } else {
+                            localStorage.setItem('selectedPayment', JSON.stringify(payment));
+                            window.location.href = '/payment';
+                          }
+                        }}
+                      >
+                        ชำระเงิน
+                      </button>
+                    )}
                   </div>
                   <div className="paid-date-cell">
                     {payment.paidDate 
@@ -231,6 +262,12 @@ export default function PaymentHistoryPage() {
               <CreditCard size={20} />
               ชำระเงิน
             </Link>
+            {paymentHistory.some(p => p.status === 'pending') && (
+              <div className="pending-notice">
+                <Clock size={16} />
+                <span>คุณมีรายการรอชำระ กรุณาชำระภายในกำหนด</span>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -468,6 +505,23 @@ export default function PaymentHistoryPage() {
           color: #64748b;
         }
 
+        .pay-btn {
+          background: #10b981;
+          color: white;
+          padding: 0.25rem 0.75rem;
+          border: none;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          font-weight: 500;
+          cursor: pointer;
+          margin-top: 0.5rem;
+          transition: background-color 0.2s;
+        }
+
+        .pay-btn:hover {
+          background: #059669;
+        }
+
         .payment-actions {
           text-align: center;
         }
@@ -486,6 +540,20 @@ export default function PaymentHistoryPage() {
 
         .pay-now-btn:hover {
           background: #059669;
+        }
+
+        .pending-notice {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          background: #fef3c7;
+          color: #92400e;
+          padding: 1rem;
+          border-radius: 8px;
+          margin-top: 1rem;
+          font-weight: 500;
+          border: 1px solid #f59e0b;
         }
 
         @media (max-width: 768px) {

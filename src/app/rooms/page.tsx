@@ -96,10 +96,23 @@ export default function RoomsPage() {
     setIsBooking(true);
     
     try {
-      // จำลองการจองห้อง
+      // บันทึกข้อมูลการจองลง localStorage
+      const bookingData = {
+        roomNumber: showBookingConfirm.roomNumber,
+        roomType: showBookingConfirm.type,
+        price: showBookingConfirm.price,
+        deposit: 450,
+        totalAmount: showBookingConfirm.price + 450,
+        bookingDate: new Date().toISOString()
+      };
+      
+      localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
+      
       await new Promise(resolve => setTimeout(resolve, 1000));
-      setShowBookingConfirm(null);
-      setShowPayment(showBookingConfirm);
+      
+      alert('จองห้องสำเร็จ! \n\nกรุณาไปที่หน้าประวัติการชำระเงินเพื่อชำระค่ามัดจำและค่าเช่า');
+      
+      window.location.href = '/payment-history';
     } finally {
       setIsBooking(false);
     }

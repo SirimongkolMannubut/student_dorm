@@ -102,6 +102,22 @@ export default function Header() {
                   </div>
                 </div>
               </div>
+              
+              <div className="menu-item primary" onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(false);
+                window.location.href = '/loan-application';
+              }}>
+                <span>ยื่นกู้รายใหม่</span>
+              </div>
+              
+              <div className="menu-item primary" onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(false);
+                window.location.href = '/rooms';
+              }}>
+                <span>ดูหอพัก</span>
+              </div>
             </div>
           </div>
         </div>

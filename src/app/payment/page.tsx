@@ -3,26 +3,29 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Upload, CheckCircle, QrCode } from 'lucide-react';
 import Link from 'next/link';
+import styles from './payment.module.css';
 
 export default function PaymentPage() {
   const [user, setUser] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
     const userData = localStorage.getItem('user');
+    const bookingData = localStorage.getItem('pendingBooking');
+    
     if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      
-      // ตรวจสอบสถานะห้อง
-      if (parsedUser.roomStatus !== 'approved') {
-        alert('คุณยังไม่ได้รับการอนุมัติห้อง\nกรุณาจองห้องและรอการอนุมัติก่อน');
-        window.location.href = '/dashboard';
-        return;
-      }
+      setUser(JSON.parse(userData));
+    }
+    
+    if (bookingData) {
+      setPendingBooking(JSON.parse(bookingData));
+    } else {
+      alert('ไม่พบข้อมูลการจอง\nกรุณาจองห้องก่อน');
+      window.location.href = '/rooms';
     }
   }, []);
 
@@ -54,18 +57,21 @@ export default function PaymentPage() {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
+      // ลบข้อมูลการจองที่รอชำระ
+      localStorage.removeItem('pendingBooking');
+      
       // เพิ่มข้อมูลใน Admin Payments
       const adminPayments = JSON.parse(localStorage.getItem('adminPayments') || '[]');
       const newPayment = {
         id: Date.now(),
         studentName: user.fullName,
         studentId: user.studentId,
-        roomNumber: user.assignedRoom,
-        amount: 3950,
+        roomNumber: pendingBooking.roomNumber,
+        amount: pendingBooking.totalAmount,
         slipImage: `/uploads/slip_${user.studentId}_${Date.now()}.jpg`,
         status: 'pending',
         uploadDate: new Date().toLocaleString('th-TH'),
-        paymentType: 'ค่ามัดจำ + ค่าเช่าเดือนแรก',
+        paymentType: `ห้อง ${pendingBooking.roomNumber} - ${pendingBooking.roomType}`,
         dueDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
         bankAccount: 'PromptPay QR Code',
         fileName: selectedFile.name
@@ -78,9 +84,9 @@ export default function PaymentPage() {
       const updatedUser = { ...user, roomStatus: 'payment_pending' };
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
-      alert('อัปโหลดสลิปการโอนเงินสำเร็จ!\n\nระบบจะส่งให้แอดมินตรวจสอบ\nคุณจะได้รับการแจ้งเตือนเมื่อการตรวจสอบเสร็จสิ้น');
+      alert('ส่งสลิปการชำระเงินสำเร็จ!\n\nระบบจะตรวจสอบการชำระเงิน\nคุณจะได้รับการแจ้งเตือนเมื่อการตรวจสอบเสร็จสิ้น');
       
-      window.location.href = '/dashboard';
+      window.location.href = '/payment-history';
 
     } catch (error) {
       alert('เกิดข้อผิดพลาดในการอัปโหลด กรุณาลองใหม่อีกครั้ง');
@@ -98,7 +104,7 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="payment-page">
+    <div className={styles.paymentPage}>
       <header className="landing-header">
         <div className="landing-header-container">
           <div className="landing-logo">
@@ -113,59 +119,67 @@ export default function PaymentPage() {
         </div>
       </header>
 
-      <main className="payment-main">
-        <div className="payment-container">
-          <div className="page-header">
+      <main className={styles.paymentMain}>
+        <div className={styles.paymentContainer}>
+          <div className={styles.pageHeader}>
             <h1>ชำระเงิน</h1>
-            <div className="step-indicator">
-              <span className="current-step">ขั้นที่ 2/3: ชำระเงิน</span>
+            <div className={styles.stepIndicator}>
+              <span className={styles.currentStep}>ขั้นที่ 2/3: ชำระเงิน</span>
             </div>
-            <h4>ค่ามัดจำ + ค่าเช่าเดือนแรก</h4>
-            <div className="payment-amount">3,950 บาท</div>
+            {pendingBooking && (
+              <>
+                <h4>ห้อง {pendingBooking.roomNumber} - {pendingBooking.roomType}</h4>
+                <div className={styles.paymentDetails}>
+                  <p>ค่าเช่า: {pendingBooking.price.toLocaleString()} บาท</p>
+                  <p>ค่ามัดจำ: {pendingBooking.deposit.toLocaleString()} บาท</p>
+                </div>
+                <div className={styles.paymentAmount}>{pendingBooking.totalAmount.toLocaleString()} บาท</div>
+              </>
+            )}
           </div>
 
-          <div className="qr-section">
-            <div className="qr-code">
-              <div className="qr-placeholder">
+          <div className={styles.qrSection}>
+            <div className={styles.qrCode}>
+              <div className={styles.qrPlaceholder}>
                 <QrCode size={120} />
-                <div className="qr-text">
+                <div className={styles.qrText}>
                   <h4>QR PromptPay อัตโนมัติ</h4>
                   <p>เลขบัญชี: 0-1234-56789-0</p>
                   <p>ชื่อบัญชี: มหาวิทยาลัยราชภัฏศรีสะเกษ</p>
                 </div>
               </div>
               <p>สแกน QR เพื่อชำระเงิน (ตรวจสอบอัตโนมัติ)</p>
-              <div className="auto-verify">
-                <span className="verify-badge">✓ ตรวจสอบอัตโนมัติ</span>
+              <div className={styles.autoVerify}>
+                <span className={styles.verifyBadge}>✓ ตรวจสอบอัตโนมัติ</span>
               </div>
             </div>
           </div>
 
-          <div className="slip-upload">
+          <div className={styles.slipUpload}>
             <h5>อัปโหลดสลิปหลังชำระเงิน:</h5>
             
-            <div className="upload-area">
+            <div className={styles.uploadArea}>
               {!selectedFile ? (
                 <>
-                  <div className="upload-placeholder">
+                  <div className={styles.uploadPlaceholder}>
                     <Upload size={48} />
                     <p>คลิกเพื่อเลือกไฟล์สลิป</p>
-                    <p className="upload-note">ไม่ได้เลือกไฟล์ใด</p>
+                    <p className={styles.uploadNote}>ไม่ได้เลือกไฟล์ใด</p>
                   </div>
                   <input 
                     type="file" 
                     accept="image/*,.pdf"
-                    className="slip-input"
+                    className={styles.slipInput}
                     onChange={handleFileSelect}
                   />
                 </>
               ) : (
-                <div className="selected-file">
-                  <div className="file-info">
+                <div className={styles.selectedFile}>
+                  <div className={styles.fileInfo}>
                     <CheckCircle size={24} color="#10b981" />
-                    <span className="file-name">ไฟล์: {selectedFile.name}</span>
+                    <span className={styles.fileName}>ไฟล์: {selectedFile.name}</span>
                     <button 
-                      className="remove-file-btn"
+                      className={styles.removeFileBtn}
                       onClick={() => setSelectedFile(null)}
                     >
                       ลบไฟล์
@@ -175,18 +189,18 @@ export default function PaymentPage() {
               )}
             </div>
             
-            <p className="upload-note">หลังชำระเงินแล้ว ให้แนบสลิปที่นี่</p>
+            <p className={styles.uploadNote}>หลังชำระเงินแล้ว ให้แนบสลิปที่นี่</p>
           </div>
 
-          <div className="payment-actions">
+          <div className={styles.paymentActions}>
             <button 
-              className="cancel-btn"
+              className={styles.cancelBtn}
               onClick={() => window.location.href = '/dashboard'}
             >
               ยกเลิก
             </button>
             <button 
-              className="submit-btn"
+              className={styles.submitBtn}
               disabled={!selectedFile || uploading}
               onClick={handleUploadSlip}
             >

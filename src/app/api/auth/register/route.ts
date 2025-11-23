@@ -1,76 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// เก็บข้อมูลผู้ใช้ใน global variable
-declare global {
-  var users: Map<string, any> | undefined;
-}
-
-if (!global.users) {
-  global.users = new Map();
-  // เพิ่มข้อมูลจำลองผู้ใช้
-  global.users.set('admin@sisaket.com', {
-    studentId: '6612732129',
-    fullName: 'ศิริมงคล มนูบุตร',
-    email: 'admin@sisaket.com',
-    year: '3',
-    major: 'วิทยาการคอมพิวเตอร์',
-    faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
-    phone: '0812345678',
-    password: 'Admin123!',
-    createdAt: new Date().toISOString()
-  });
-}
-
-const users = global.users;
+import connectDB from '../../../../lib/mongodb';
+import User from '../../../../models/User';
 
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json();
+    await connectDB();
     
-    // ตรวจสอบว่ามีผู้ใช้นี้แล้วหรือไม่
-    if (users.has(data.email)) {
+    const { email, password, firstName, lastName, phone, studentId } = await request.json();
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ 
+      $or: [{ email }, { studentId }] 
+    });
+    
+    if (existingUser) {
       return NextResponse.json(
-        { error: 'อีเมลนี้ถูกใช้งานแล้ว' },
+        { error: 'User already exists' },
         { status: 400 }
       );
     }
-
-    // บันทึกข้อมูลผู้ใช้
-    users.set(data.email, {
-      studentId: data.studentId,
-      fullName: data.fullName,
-      email: data.email,
-      year: data.year,
-      major: data.major,
-      faculty: data.faculty,
-      phone: data.phone,
-      password: data.password,
-      createdAt: new Date().toISOString()
+    
+    // Create new user
+    const user = await User.create({
+      email,
+      password,
+      firstName,
+      lastName,
+      phone,
+      studentId,
+      role: 'student'
     });
-
+    
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user.toObject();
+    
     return NextResponse.json(
-      { 
-        message: 'ลงทะเบียนสำเร็จ', 
-        user: {
-          email: data.email,
-          fullName: data.fullName,
-          studentId: data.studentId,
-          year: data.year,
-          major: data.major,
-          faculty: data.faculty,
-          phone: data.phone
-        }
-      },
+      { message: 'User registered successfully', user: userWithoutPassword },
       { status: 201 }
     );
+    
   } catch (error) {
+    console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการลงทะเบียน' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
 export async function GET() {
-  return NextResponse.json(Array.from(users.values()));
+  try {
+    await connectDB();
+    const users = await User.find({}).select('-password');
+    return NextResponse.json(users);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }

@@ -52,7 +52,7 @@ export default function LoginPage() {
         const data = await response.json();
         if (response.ok) {
           alert('ลงทะเบียนสำเร็จ!');
-          window.location.href = data.redirectTo || '/dashboard';
+          window.location.href = data.redirectTo || '/profile';
         } else {
           alert(data.error || 'เกิดข้อผิดพลาด');
         }
@@ -72,7 +72,7 @@ export default function LoginPage() {
         
         const data = await response.json();
         if (response.ok) {
-          window.location.href = data.redirectTo || '/dashboard';
+          window.location.href = data.redirectTo || '/profile';
         } else {
           alert(data.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
         }

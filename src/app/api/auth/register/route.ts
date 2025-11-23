@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Simple in-memory storage
+if (!global.registeredUsers) {
+  global.registeredUsers = [];
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password, firstName, lastName, phone, studentId, gender, year, major, faculty } = await request.json();
     
-    // สร้าง user object โดยไม่ต้องบันทึกลง database
+    // สร้าง user object และเก็บไว้ใน memory
     const user = {
       id: Date.now().toString(),
       studentId,
@@ -16,9 +21,13 @@ export async function POST(request: NextRequest) {
       year,
       major,
       faculty,
+      password, // เก็บ password ไว้สำหรับ login
       role: "student",
       status: "pending"
     };
+    
+    // เก็บข้อมูลผู้ใช้ที่สมัคร
+    global.registeredUsers.push(user);
     
     console.log('User created (mock):', user.id);
     
@@ -45,7 +54,7 @@ export async function POST(request: NextRequest) {
     );
     
     const response = NextResponse.json(
-      { message: 'User registered successfully', user, redirectTo: '/dashboard' },
+      { message: 'User registered successfully', user, redirectTo: '/profile' },
       { status: 201 }
     );
     

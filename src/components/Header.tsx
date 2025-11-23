@@ -9,9 +9,28 @@ export default function Header() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    if (isLoggedIn()) {
-      setUser(getUserFromToken());
-    }
+    const fetchUser = async () => {
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      if (token) {
+        try {
+          const response = await fetch('/api/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            console.log('User data from API:', userData);
+            setUser(userData);
+          }
+        } catch (error) {
+          console.error('Error fetching user:', error);
+        }
+      }
+    };
+    
+    fetchUser();
   }, []);
 
   const handleLogout = () => {
@@ -40,7 +59,7 @@ export default function Header() {
             </button>
             <button className="nav-link" onClick={() => window.location.href = '/profile'}>
               <User size={18} />
-              {user ? user.name : 'Profile'}
+              {user?.firstName || 'Profile'}
             </button>
             <button className="nav-link logout-btn" onClick={handleLogout}>
               <LogOut size={18} />

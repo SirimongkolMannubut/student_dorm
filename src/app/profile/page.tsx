@@ -39,18 +39,17 @@ export default function ProfilePage() {
     const userData = localStorage.getItem('user');
     if (userData) {
       const user = JSON.parse(userData);
-      setUserInfo({
+      setUserInfo(prev => ({
+        ...prev,
         fullName: user.fullName || '',
         studentId: user.studentId || '',
         email: user.email || '',
         phone: user.phone || '',
-        year: user.year || '',
-        major: user.major || '',
         faculty: user.faculty || '',
-        address: user.address || '',
-        emergencyContact: user.emergencyContact || '',
+        major: user.major || '',
+        guardianName: user.guardianName || '',
         emergencyPhone: user.emergencyPhone || ''
-      });
+      }));
     }
   }, []);
 

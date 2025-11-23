@@ -4454,6 +4454,11 @@ button {
   padding-left: 3.25rem;
 }
 
+.menu-item.sub {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
 .submenu {
   background: linear-gradient(135deg, #fafbff 0%, #f0f4f8 100%);
   border-left: 2px solid #e2e8f0;

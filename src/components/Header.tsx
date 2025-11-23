@@ -53,10 +53,18 @@ export default function Header() {
                   <div className="menu-item sub" onClick={() => window.location.href = '/contract'}>
                     <span>สัญญาเช่า</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/payment-history';
+                  }}>
                     <span>ประวัติการชำระเงิน</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/maintenance';
+                  }}>
                     <span>แจ้งซ่อม</span>
                   </div>
                   <div className="menu-item sub">
@@ -76,7 +84,11 @@ export default function Header() {
                   <span>เอกสาร</span>
                 </div>
                 <div className="submenu">
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/documents';
+                  }}>
                     <span>เอกสารที่ส่งแล้ว</span>
                   </div>
                   <div className="menu-item sub">

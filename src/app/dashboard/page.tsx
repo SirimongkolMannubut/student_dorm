@@ -330,15 +330,26 @@ export default function DashboardPage() {
                     <User size={14} />
                     <span>ข้อมูลส่วนตัว</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = '/contract';
+                  }}>
                     <FileText size={14} />
                     <span>สัญญาเช่า</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/payment-history';
+                  }}>
                     <CreditCard size={14} />
                     <span>ประวัติการชำระเงิน</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/maintenance';
+                  }}>
                     <Wrench size={14} />
                     <span>แจ้งซ่อม</span>
                   </div>
@@ -364,7 +375,11 @@ export default function DashboardPage() {
                   <ChevronRight size={16} className="chevron" />
                 </div>
                 <div className="submenu">
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/documents';
+                  }}>
                     <FolderOpen size={14} />
                     <span>เอกสารที่ส่งแล้ว</span>
                   </div>

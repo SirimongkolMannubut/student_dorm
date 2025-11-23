@@ -10,8 +10,10 @@ type Props = {
 export default function RegistrationForm({ onSuccess }: Props) {
   const [formData, setFormData] = useState({
     studentId: "",
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
+    gender: "",
     year: "",
     major: "",
     faculty: "",
@@ -27,36 +29,62 @@ export default function RegistrationForm({ onSuccess }: Props) {
     setFormData({ ...formData, [name]: value });
   };
 
+  const validateForm = () => {
+    // ตรวจสอบรหัสผ่าน
+    if (formData.password !== formData.confirmPassword) {
+      return "รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน";
+    }
+
+    // ตรวจสอบอีเมล
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      return "รูปแบบอีเมลไม่ถูกต้อง";
+    }
+
+    // ตรวจสอบเบอร์โทร (10 หลัก)
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      return "เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลัก";
+    }
+
+    // ตรวจสอบรหัสนักศึกษา (ตัวเลข)
+    const studentIdRegex = /^[0-9]+$/;
+    if (!studentIdRegex.test(formData.studentId)) {
+      return "รหัสนักศึกษาต้องเป็นตัวเลขเท่านั้น";
+    }
+
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("รหัสผ่านไม่ตรงกัน");
+    // ตรวจสอบ validation
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       setLoading(false);
       return;
     }
 
     try {
+      console.log('Sending registration data:', formData); // Debug log
+      
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+      
+      console.log('Response status:', response.status); // Debug log
 
       if (response.ok) {
         const result = await response.json();
-        localStorage.setItem('user', JSON.stringify({
-          email: formData.email,
-          fullName: formData.fullName,
-          studentId: formData.studentId,
-          year: formData.year,
-          major: formData.major,
-          faculty: formData.faculty,
-          phone: formData.phone
-        }));
-        window.location.href = '/dashboard';
+        console.log('Registration successful:', result); // Debug log
+        // Redirect to dashboard (token is set in cookie automatically)
+        window.location.href = result.redirectTo || '/dashboard';
       } else {
         const data = await response.json();
         setError(data.error || "เกิดข้อผิดพลาดในการลงทะเบียน");
@@ -80,21 +108,50 @@ export default function RegistrationForm({ onSuccess }: Props) {
           onChange={handleChange}
           className={styles.input}
           placeholder="เช่น 62010001"
+          pattern="[0-9]+"
           required
         />
       </label>
       <label className={styles.label}>
-        ชื่อ – นามสกุล
+        ชื่อ
         <input
           type="text"
-          id="fullName"
-          name="fullName"
-          value={formData.fullName}
+          id="firstName"
+          name="firstName"
+          value={formData.firstName}
           onChange={handleChange}
           className={styles.input}
-          placeholder="ชื่อจริง นามสกุล"
+          placeholder="ชื่อจริง"
           required
         />
+      </label>
+      <label className={styles.label}>
+        นามสกุล
+        <input
+          type="text"
+          id="lastName"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleChange}
+          className={styles.input}
+          placeholder="นามสกุล"
+          required
+        />
+      </label>
+      <label className={styles.label}>
+        เพศ
+        <select
+          id="gender"
+          name="gender"
+          value={formData.gender}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        >
+          <option value="">เลือกเพศ</option>
+          <option value="male">ชาย</option>
+          <option value="female">หญิง</option>
+        </select>
       </label>
       <label className={styles.label}>
         ชั้นปี
@@ -149,6 +206,8 @@ export default function RegistrationForm({ onSuccess }: Props) {
           onChange={handleChange}
           className={styles.input}
           placeholder="เช่น 0812345678"
+          pattern="[0-9]{10}"
+          maxLength={10}
           required
         />
       </label>

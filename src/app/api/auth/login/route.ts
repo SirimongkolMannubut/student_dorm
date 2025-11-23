@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
     // Generate JWT token
     const token = jwt.sign(
-      { sub: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}` },
+      { sub: user._id, email: user.email, role: user.role, name: `${user.firstName} ${user.lastName}`, status: user.status },
       SECRET,
       { expiresIn: '1d' }
     );
@@ -36,7 +36,9 @@ export async function POST(req: Request) {
         email: user.email,
         role: user.role,
         status: user.status
-      } 
+      },
+      redirectTo: user.role === 'admin' ? '/admin' : '/dashboard',
+      role: user.role
     });
     
     res.cookies.set('token', token, { httpOnly: true, path: '/', maxAge: 60 * 60 * 24 });

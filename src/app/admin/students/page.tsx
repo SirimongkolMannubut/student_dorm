@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Search, Check, X, Eye } from 'lucide-react';
 import AdminHeader from '../../../components/AdminHeader';
+import ProtectedRoute from '../../../components/ProtectedRoute';
 import '../../../styles/admin.css';
 
 export default function StudentsPage() {
@@ -60,7 +61,8 @@ export default function StudentsPage() {
   }
 
   return (
-    <div className="admin-page">
+    <ProtectedRoute requireAdmin={true}>
+      <div className="admin-page">
       <AdminHeader />
       
       <main className="admin-main">
@@ -123,7 +125,7 @@ export default function StudentsPage() {
               <tbody>
                 {filteredStudents.map(student => (
                   <tr key={student._id}>
-                    <td>{student.studentId}</td>
+                    <td>{student.studentId || '-'}</td>
                     <td>{student.firstName} {student.lastName}</td>
                     <td>{student.room?.number || '-'}</td>
                     <td>{student.phone}</td>
@@ -165,5 +167,6 @@ export default function StudentsPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   );
 }

@@ -1,8 +1,22 @@
 'use client';
 
 import { Bell, LogOut, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { getUserFromToken, isLoggedIn } from '../lib/auth';
 
 export default function AdminHeader() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (isLoggedIn()) {
+      setUser(getUserFromToken());
+    }
+  }, []);
+
+  const handleLogout = () => {
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = '/';
+  };
   return (
     <header className="landing-header">
       <div className="landing-header-container">
@@ -16,9 +30,9 @@ export default function AdminHeader() {
           </button>
           <button className="nav-link">
             <User size={18} />
-            ผู้ดูแลระบบ
+            {user ? user.name : 'ผู้ดูแลระบบ'}
           </button>
-          <button className="nav-link logout-btn">
+          <button className="nav-link logout-btn" onClick={handleLogout}>
             <LogOut size={18} />
           </button>
         </nav>

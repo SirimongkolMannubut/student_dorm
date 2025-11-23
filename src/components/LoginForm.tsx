@@ -35,7 +35,7 @@ export default function LoginForm({ onSuccess, initialUsername }: Props) {
       }
     }
   }, [initialUsername]);
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!email || !password) {
@@ -45,50 +45,40 @@ export default function LoginForm({ onSuccess, initialUsername }: Props) {
     
     setLoading(true);
     
-    // จำลองการเข้าสู่ระบบ
-    setTimeout(() => {
-      let userData;
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
       
-      // ตรวจสอบว่าเป็น admin หรือนักศึกษา
-      if (email === 'admin@sskru.ac.th' && password === 'admin123') {
-        userData = {
-          role: 'admin',
-          fullName: 'ผู้ดูแลระบบ',
-          email: 'admin@sskru.ac.th'
-        };
-        localStorage.setItem('user', JSON.stringify(userData));
-        router.push('/admin');
-      } else {
-        // นักศึกษา - ใช้ข้อมูลจำลอง
-        userData = {
-          studentId: email.includes('@') ? '661048827' : email,
-          fullName: 'น.ส.สมคิด พลหาญ',
-          email: email.includes('@') ? email : `${email}@sskru.ac.th`,
-          year: '3',
-          major: 'วิทยาการคอมพิวเตอร์',
-          faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
-          phone: '0812345678',
-          roomStatus: 'none',
-          role: 'student'
-        };
-        localStorage.setItem('user', JSON.stringify(userData));
+      const data = await response.json();
+      
+      if (response.ok) {
+        // บันทึกการจดจำ
+        if (remember) {
+          localStorage.setItem('login_remember', JSON.stringify({ email, remember: true }));
+        } else {
+          localStorage.removeItem('login_remember');
+        }
         
+        // Redirect based on response
+        console.log('Login response:', data); // Debug log
         if (onSuccess) {
           onSuccess();
         } else {
-          router.push('/dashboard');
+          const redirectUrl = data.redirectTo || '/';
+          console.log('Redirecting to:', redirectUrl); // Debug log
+          window.location.href = redirectUrl;
         }
-      }
-      
-      // บันทึกการจดจำ
-      if (remember) {
-        localStorage.setItem('login_remember', JSON.stringify({ email, remember: true }));
       } else {
-        localStorage.removeItem('login_remember');
+        setError(data.error || 'เข้าสู่ระบบไม่สำเร็จ');
       }
-      
+    } catch (error) {
+      setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   }
 
   return (

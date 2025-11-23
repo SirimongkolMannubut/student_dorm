@@ -1,10 +1,23 @@
 'use client';
 
-import { Menu, X, User, Bell } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, User, Bell, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { getUserFromToken, isLoggedIn } from '../lib/auth';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (isLoggedIn()) {
+      setUser(getUserFromToken());
+    }
+  }, []);
+
+  const handleLogout = () => {
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = '/';
+  };
 
   return (
     <>
@@ -25,9 +38,12 @@ export default function Header() {
             <button className="nav-link">
               <Bell size={18} />
             </button>
-            <button className="nav-link">
+            <button className="nav-link" onClick={() => window.location.href = '/profile'}>
               <User size={18} />
-              Profile
+              {user ? user.name : 'Profile'}
+            </button>
+            <button className="nav-link logout-btn" onClick={handleLogout}>
+              <LogOut size={18} />
             </button>
           </nav>
         </div>

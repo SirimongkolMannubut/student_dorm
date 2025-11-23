@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, FileText, Save, Edit, Camera, Home, Calendar, Phone, Mail, MapPin } from 'lucide-react';
+import { User, FileText, Save, Edit, Camera, Home, Calendar, Phone, Mail, MapPin, X } from 'lucide-react';
 import Header from '../../components/Header';
 
 export default function ProfilePage() {
+  const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState({
     fullName: '',
     studentId: '',
@@ -36,27 +37,103 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      setUserInfo(prev => ({
-        ...prev,
-        fullName: user.fullName || '',
-        studentId: user.studentId || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        faculty: user.faculty || '',
-        major: user.major || '',
-        guardianName: user.guardianName || '',
-        emergencyPhone: user.emergencyPhone || ''
-      }));
-    }
+    fetchUserProfile();
   }, []);
 
-  const handleSave = () => {
-    const updatedUser = { ...userInfo, ...contractData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    alert('บันทึกข้อมูลสำเร็จ!\n\nสัญญาดิจิทัลพร้อมใช้งาน ✓');
+  const fetchUserProfile = async () => {
+    try {
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      if (!token) {
+        console.log('No token found');
+        return;
+      }
+
+      const response = await fetch('/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        console.log('User data from API:', user); // Debug log
+        setUserInfo(prev => ({
+          ...prev,
+          fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          studentId: user.studentId || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          faculty: user.faculty || '',
+          major: user.major || '',
+          gender: user.gender === 'male' ? 'ชาย' : user.gender === 'female' ? 'หญิง' : '',
+          academicYear: user.year || '',
+          guardianName: user.guardianName || '',
+          emergencyPhone: user.emergencyPhone || ''
+        }));
+      } else {
+        console.log('Failed to fetch profile:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      if (!token) {
+        alert('กรุณาเข้าสู่ระบบก่อน');
+        return;
+      }
+
+      // ตรวจสอบข้อมูลจำเป็น
+      if (!userInfo.fullName || !userInfo.phone) {
+        alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+        return;
+      }
+
+      const [firstName, ...lastNameParts] = userInfo.fullName.split(' ');
+      const lastName = lastNameParts.join(' ');
+
+      const updateData = {
+        firstName: firstName || '',
+        lastName: lastName || '',
+        phone: userInfo.phone,
+        gender: userInfo.gender === 'ชาย' ? 'male' : userInfo.gender === 'หญิง' ? 'female' : '',
+        year: userInfo.academicYear,
+        major: userInfo.major,
+        faculty: userInfo.faculty,
+        birthDate: userInfo.birthDate,
+        currentAddress: userInfo.currentAddress,
+        guardianName: userInfo.guardianName,
+        emergencyPhone: userInfo.emergencyPhone
+      };
+
+      console.log('Sending update data:', updateData); // Debug log
+
+      const response = await fetch('/api/students/updateProfile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      const result = await response.json();
+      console.log('Update response:', result); // Debug log
+
+      if (response.ok) {
+        alert('บันทึกข้อมูลสำเร็จ!');
+        setIsEditing(false); // Exit edit mode
+        fetchUserProfile(); // Refresh data
+      } else {
+        alert(result.error || 'เกิดข้อผิดพลาดในการบันทึก');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('เกิดข้อผิดพลาดในการบันทึก');
+    }
   };
 
   return (
@@ -84,6 +161,7 @@ export default function ProfilePage() {
                     type="text" 
                     value={userInfo.fullName}
                     onChange={(e) => setUserInfo({...userInfo, fullName: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -92,6 +170,7 @@ export default function ProfilePage() {
                     type="text" 
                     value={userInfo.studentId}
                     onChange={(e) => setUserInfo({...userInfo, studentId: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -104,6 +183,7 @@ export default function ProfilePage() {
                       setUserInfo({...userInfo, faculty: faculty || '', major: major || ''});
                     }}
                     placeholder="คณะ / สาขา"
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -112,6 +192,7 @@ export default function ProfilePage() {
                     type="tel" 
                     value={userInfo.phone}
                     onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -120,6 +201,7 @@ export default function ProfilePage() {
                     type="email" 
                     value={userInfo.email}
                     onChange={(e) => setUserInfo({...userInfo, email: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -128,6 +210,7 @@ export default function ProfilePage() {
                     type="date" 
                     value={userInfo.birthDate}
                     onChange={(e) => setUserInfo({...userInfo, birthDate: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -135,6 +218,7 @@ export default function ProfilePage() {
                   <select 
                     value={userInfo.gender}
                     onChange={(e) => setUserInfo({...userInfo, gender: e.target.value})}
+                    disabled={!isEditing}
                   >
                     <option value="">เลือกเพศ</option>
                     <option value="ชาย">ชาย</option>
@@ -146,6 +230,7 @@ export default function ProfilePage() {
                   <select 
                     value={userInfo.academicYear}
                     onChange={(e) => setUserInfo({...userInfo, academicYear: e.target.value})}
+                    disabled={!isEditing}
                   >
                     <option value="">เลือกปีการศึกษา</option>
                     <option value="1">ปี 1</option>
@@ -170,6 +255,7 @@ export default function ProfilePage() {
                     type="text" 
                     value={userInfo.houseNumber}
                     onChange={(e) => setUserInfo({...userInfo, houseNumber: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -178,6 +264,7 @@ export default function ProfilePage() {
                     type="text" 
                     value={userInfo.province}
                     onChange={(e) => setUserInfo({...userInfo, province: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group full-width">
@@ -186,6 +273,7 @@ export default function ProfilePage() {
                     value={userInfo.currentAddress}
                     onChange={(e) => setUserInfo({...userInfo, currentAddress: e.target.value})}
                     placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -204,6 +292,7 @@ export default function ProfilePage() {
                     type="text" 
                     value={userInfo.guardianName}
                     onChange={(e) => setUserInfo({...userInfo, guardianName: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -212,6 +301,7 @@ export default function ProfilePage() {
                     type="tel" 
                     value={userInfo.emergencyPhone}
                     onChange={(e) => setUserInfo({...userInfo, emergencyPhone: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -231,6 +321,7 @@ export default function ProfilePage() {
                     value={userInfo.roomNumber}
                     onChange={(e) => setUserInfo({...userInfo, roomNumber: e.target.value})}
                     placeholder="เช่น A-301"
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -239,6 +330,7 @@ export default function ProfilePage() {
                     type="date" 
                     value={userInfo.checkInDate}
                     onChange={(e) => setUserInfo({...userInfo, checkInDate: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -247,6 +339,7 @@ export default function ProfilePage() {
                     type="date" 
                     value={userInfo.contractEndDate}
                     onChange={(e) => setUserInfo({...userInfo, contractEndDate: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="form-group">
@@ -254,6 +347,7 @@ export default function ProfilePage() {
                   <select 
                     value={userInfo.rentalStatus}
                     onChange={(e) => setUserInfo({...userInfo, rentalStatus: e.target.value})}
+                    disabled={!isEditing}
                   >
                     <option value="">เลือกสถานะ</option>
                     <option value="กำลังเช่า">กำลังเช่า</option>
@@ -266,20 +360,43 @@ export default function ProfilePage() {
           </div>
 
           <div className="action-buttons">
-            <h3>🔹 ปุ่มที่ควรมี</h3>
+            <h3>การจัดการข้อมูล</h3>
             <div className="buttons-grid">
-              <button className="action-btn edit-btn">
-                <Edit size={20} />
-                แก้ไขข้อมูล
-              </button>
-              <button className="action-btn upload-btn">
-                <Camera size={20} />
-                อัปโหลดรูปโปรไฟล์
-              </button>
-              <button className="action-btn save-btn" onClick={handleSave}>
-                <Save size={20} />
-                บันทึกข้อมูล
-              </button>
+              {!isEditing ? (
+                <>
+                  <button 
+                    className="action-btn edit-btn"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Edit size={20} />
+                    แก้ไขข้อมูล
+                  </button>
+                  <button className="action-btn upload-btn">
+                    <Camera size={20} />
+                    อัปโหลดรูปโปรไฟล์
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    className="action-btn save-btn" 
+                    onClick={handleSave}
+                  >
+                    <Save size={20} />
+                    บันทึกข้อมูล
+                  </button>
+                  <button 
+                    className="action-btn cancel-btn"
+                    onClick={() => {
+                      setIsEditing(false);
+                      fetchUserProfile(); // Reset data
+                    }}
+                  >
+                    <X size={20} />
+                    ยกเลิก
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

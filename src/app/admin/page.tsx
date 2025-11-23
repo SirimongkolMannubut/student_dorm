@@ -29,8 +29,64 @@ const recentActivities = [
 ];
 
 export default function AdminPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    if (password === 'admin123') {
+      setIsLoggedIn(true);
+    } else {
+      alert('รหัสผ่านไม่ถูกต้อง');
+    }
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div className="bg-white p-10 rounded-2xl shadow-2xl w-96 transform hover:scale-105 transition-all duration-300">
+          <div className="text-center mb-8">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+              <Users className="text-white" size={32} />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel</h2>
+            <p className="text-gray-600">ระบบจัดการหอพัก</p>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="relative">
+              <input
+                type="password"
+                placeholder="รหัสผ่านแอดมิน"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors duration-200 pl-12"
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              />
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                🔒
+              </div>
+            </div>
+            
+            <button
+              onClick={handleLogin}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 font-semibold shadow-lg"
+            >
+              เข้าสู่ระบบ
+            </button>
+          </div>
+          
+          <div className="mt-6 text-center text-sm text-gray-500">
+            รหัส: admin123
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="admin-page">
+      <div className="admin-page">
       <AdminHeader />
 
       {/* Main Content */}

@@ -1,17 +1,42 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Building, Search, Plus, Edit, Eye } from 'lucide-react';
 import AdminHeader from '../../../components/AdminHeader';
 import '../../../styles/admin.css';
 
-const rooms = [
-  { id: 1, number: 'A301', building: 'A', floor: 3, type: 'เดี่ยว', price: 5000, status: 'occupied', student: 'สมชาย ใจดี' },
-  { id: 2, number: 'B205', building: 'B', floor: 2, type: 'คู่', price: 3500, status: 'occupied', student: 'สมหญิง สวยงาม' },
-  { id: 3, number: 'C102', building: 'C', floor: 1, type: 'เดี่ยว', price: 5000, status: 'maintenance', student: null },
-  { id: 4, number: 'A401', building: 'A', floor: 4, type: 'คู่', price: 3500, status: 'available', student: null },
-];
-
 export default function RoomsPage() {
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  const fetchRooms = async () => {
+    try {
+      const response = await fetch('/api/rooms');
+      const data = await response.json();
+      setRooms(data);
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="admin-page">
+        <AdminHeader />
+        <main className="admin-main">
+          <div className="admin-container">
+            <div>Loading...</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
   return (
     <div className="admin-page">
       <AdminHeader />
@@ -55,7 +80,7 @@ export default function RoomsPage() {
               </thead>
               <tbody>
                 {rooms.map(room => (
-                  <tr key={room.id}>
+                  <tr key={room._id}>
                     <td>{room.number}</td>
                     <td>{room.building}</td>
                     <td>{room.floor}</td>
@@ -68,7 +93,7 @@ export default function RoomsPage() {
                         {room.status === 'maintenance' && 'ซ่อมบำรุง'}
                       </span>
                     </td>
-                    <td>{room.student || '-'}</td>
+                    <td>{room.occupant ? `${room.occupant.firstName} ${room.occupant.lastName}` : '-'}</td>
                     <td>
                       <div className="table-actions">
                         <button className="action-btn view">

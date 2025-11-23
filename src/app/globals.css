@@ -4633,6 +4633,33 @@ button {
   box-shadow: 0 8px 16px -4px rgba(16, 185, 129, 0.4);
 }
 
+.cancel-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.cancel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgba(239, 68, 68, 0.4);
+}
+
+/* Disabled input styles */
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-color: #f9fafb !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  border-color: #e5e7eb !important;
+}
+
+input:disabled:focus,
+select:disabled:focus,
+textarea:disabled:focus {
+  box-shadow: none !important;
+  border-color: #e5e7eb !important;
+}
+
 @media (max-width: 768px) {
   .profile-container {
     padding: 0 1rem;

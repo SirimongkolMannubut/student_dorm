@@ -17,11 +17,36 @@ export default function ContractPage() {
   });
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      setUserInfo(user);
-    }
+    const fetchUserProfile = async () => {
+      try {
+        const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+        if (!token) return;
+
+        const response = await fetch('/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const user = await response.json();
+          setUserInfo({
+            fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+            studentId: user.studentId || '',
+            phone: user.phone || '',
+            guardianName: user.guardianName || '',
+            emergencyPhone: user.emergencyPhone || '',
+            roomNumber: user.roomNumber || 'A-301',
+            checkInDate: user.checkInDate || new Date().toISOString().split('T')[0],
+            contractEndDate: user.contractEndDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    fetchUserProfile();
   }, []);
 
   return (

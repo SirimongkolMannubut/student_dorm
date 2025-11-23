@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Building, Users, Snowflake, Fan, MapPin, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import Header from '../../components/Header';
 
 // สร้างข้อมูลผู้อยู่อาศัยจำลอง
 const generateOccupants = (count: number) => {
@@ -126,19 +127,7 @@ export default function RoomsPage() {
 
   return (
     <div className="rooms-page">
-      <header className="landing-header">
-        <div className="landing-header-container">
-          <div className="landing-logo">
-            <h1>SSKRU Dormitory System</h1>
-          </div>
-          <nav className="landing-nav">
-            <Link href="/dashboard" className="nav-link">
-              <ArrowLeft size={18} />
-              กลับ Dashboard
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="rooms-main">
         <div className="rooms-container">

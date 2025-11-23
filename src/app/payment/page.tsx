@@ -3,29 +3,34 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Upload, CheckCircle, QrCode } from 'lucide-react';
 import Link from 'next/link';
-import styles from './payment.module.css';
+import Header from '../../components/Header';
 
 export default function PaymentPage() {
   const [user, setUser] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [pendingBooking, setPendingBooking] = useState<any>(null);
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
     const userData = localStorage.getItem('user');
     const bookingData = localStorage.getItem('pendingBooking');
+    const paymentData = localStorage.getItem('selectedPayment');
     
     if (userData) {
       setUser(JSON.parse(userData));
     }
     
-    if (bookingData) {
+    if (paymentData) {
+      setSelectedPayment(JSON.parse(paymentData));
+      localStorage.removeItem('selectedPayment');
+    } else if (bookingData) {
       setPendingBooking(JSON.parse(bookingData));
     } else {
-      alert('ไม่พบข้อมูลการจอง\nกรุณาจองห้องก่อน');
-      window.location.href = '/rooms';
+      alert('ไม่พบข้อมูลการชำระ\nกรุณาไปหน้าประวัติการชำระเงิน');
+      window.location.href = '/payment-history';
     }
   }, []);
 
@@ -104,82 +109,78 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className={styles.paymentPage}>
-      <header className="landing-header">
-        <div className="landing-header-container">
-          <div className="landing-logo">
-            <h1>SSKRU Payment System</h1>
-          </div>
-          <nav className="landing-nav">
-            <Link href="/dashboard" className="nav-link">
-              <ArrowLeft size={18} />
-              กลับหน้าหลัก
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
+      <Header />
 
-      <main className={styles.paymentMain}>
-        <div className={styles.paymentContainer}>
-          <div className={styles.pageHeader}>
-            <h1>ชำระเงิน</h1>
-            <div className={styles.stepIndicator}>
-              <span className={styles.currentStep}>ขั้นที่ 2/3: ชำระเงิน</span>
+      <main style={{ padding: '2rem 0' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div style={{ textAlign: 'center', background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.15)', borderLeft: '4px solid #3b82f6' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1e293b', marginBottom: '1rem' }}>ชำระเงิน</h1>
+            <div style={{ marginBottom: '1rem' }}>
+              <span style={{ background: '#3b82f6', color: 'white', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>ขั้นที่ 2/3: ชำระเงิน</span>
             </div>
             {pendingBooking && (
               <>
-                <h4>ห้อง {pendingBooking.roomNumber} - {pendingBooking.roomType}</h4>
-                <div className={styles.paymentDetails}>
-                  <p>ค่าเช่า: {pendingBooking.price.toLocaleString()} บาท</p>
-                  <p>ค่ามัดจำ: {pendingBooking.deposit.toLocaleString()} บาท</p>
+                <h4 style={{ margin: '1rem 0', fontSize: '1.25rem', color: '#1e293b' }}>ห้อง {pendingBooking.roomNumber} - {pendingBooking.roomType}</h4>
+                <div style={{ margin: '1.5rem 0', padding: '1.5rem', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', borderRadius: '12px', border: '2px solid #3b82f6', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <p style={{ margin: '0', padding: '0.75rem', background: 'white', borderRadius: '8px', color: '#1e293b', fontWeight: '500', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>ค่าเช่า: {pendingBooking.price.toLocaleString()} บาท</p>
+                  <p style={{ margin: '0', padding: '0.75rem', background: 'white', borderRadius: '8px', color: '#1e293b', fontWeight: '500', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>ค่ามัดจำ: {pendingBooking.deposit.toLocaleString()} บาท</p>
                 </div>
-                <div className={styles.paymentAmount}>{pendingBooking.totalAmount.toLocaleString()} บาท</div>
+                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#10b981', marginTop: '1rem' }}>{pendingBooking.totalAmount.toLocaleString()} บาท</div>
+              </>
+            )}
+            {selectedPayment && (
+              <>
+                <h4 style={{ margin: '1rem 0', fontSize: '1.25rem', color: '#1e293b' }}>{selectedPayment.type}</h4>
+                <div style={{ margin: '1.5rem 0', padding: '1.5rem', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', borderRadius: '12px', border: '2px solid #3b82f6', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <p style={{ margin: '0', padding: '0.75rem', background: 'white', borderRadius: '8px', color: '#1e293b', fontWeight: '500', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>เดือน: {selectedPayment.month}</p>
+                  <p style={{ margin: '0', padding: '0.75rem', background: 'white', borderRadius: '8px', color: '#1e293b', fontWeight: '500', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>กำหนดชำระ: {new Date(selectedPayment.dueDate).toLocaleDateString('th-TH')}</p>
+                </div>
+                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#10b981', marginTop: '1rem' }}>{selectedPayment.amount.toLocaleString()} บาท</div>
               </>
             )}
           </div>
 
-          <div className={styles.qrSection}>
-            <div className={styles.qrCode}>
-              <div className={styles.qrPlaceholder}>
-                <QrCode size={120} />
-                <div className={styles.qrText}>
-                  <h4>QR PromptPay อัตโนมัติ</h4>
-                  <p>เลขบัญชี: 0-1234-56789-0</p>
-                  <p>ชื่อบัญชี: มหาวิทยาลัยราชภัฏศรีสะเกษ</p>
-                </div>
+          <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.15)', textAlign: 'center', borderLeft: '4px solid #10b981' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', padding: '2rem', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '2px solid #10b981', borderRadius: '12px', marginBottom: '1.5rem' }}>
+              <img src="/images/49e819ed-80cd-4aa8-a4fa-ec5e361f427c.jpg" alt="QR Code" style={{ width: '200px', height: '200px', borderRadius: '8px', objectFit: 'cover' }} />
+              <div style={{ textAlign: 'left' }}>
+                <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b', fontSize: '1.25rem', fontWeight: '700' }}>QR PromptPay อัตโนมัติ</h4>
+                <p style={{ margin: '0.5rem 0', color: '#374151', fontSize: '0.95rem', fontWeight: '500' }}>พร้อมเพย์: 0652796807</p>
+                <p style={{ margin: '0.5rem 0', color: '#374151', fontSize: '0.95rem', fontWeight: '500' }}>ชื่อบัญชี: ศิริมงคล มนูบุตร</p>
               </div>
-              <p>สแกน QR เพื่อชำระเงิน (ตรวจสอบอัตโนมัติ)</p>
-              <div className={styles.autoVerify}>
-                <span className={styles.verifyBadge}>✓ ตรวจสอบอัตโนมัติ</span>
-              </div>
+            </div>
+            <p style={{ marginBottom: '1rem', color: '#64748b' }}>สแกน QR เพื่อชำระเงิน (ตรวจสอบอัตโนมัติ)</p>
+            <div style={{ marginTop: '1rem' }}>
+              <span style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', padding: '0.5rem 1rem', borderRadius: '25px', fontSize: '0.875rem', fontWeight: '600', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}>✓ ตรวจสอบอัตโนมัติ</span>
             </div>
           </div>
 
-          <div className={styles.slipUpload}>
-            <h5>อัปโหลดสลิปหลังชำระเงิน:</h5>
+          <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.15)', borderLeft: '4px solid #f59e0b' }}>
+            <h5 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', color: '#1e293b' }}>อัปโหลดสลิปหลังชำระเงิน:</h5>
             
-            <div className={styles.uploadArea}>
+            <div style={{ position: 'relative', marginBottom: '1rem' }}>
               {!selectedFile ? (
                 <>
-                  <div className={styles.uploadPlaceholder}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '3rem 2rem', background: 'linear-gradient(135deg, #fefce8 0%, #fef3c7 100%)', border: '2px dashed #f59e0b', borderRadius: '12px', cursor: 'pointer', color: '#92400e', transition: 'all 0.3s ease' }}>
                     <Upload size={48} />
-                    <p>คลิกเพื่อเลือกไฟล์สลิป</p>
-                    <p className={styles.uploadNote}>ไม่ได้เลือกไฟล์ใด</p>
+                    <p style={{ margin: '0', fontWeight: '600' }}>คลิกเพื่อเลือกไฟล์สลิป</p>
+                    <p style={{ margin: '0', fontSize: '0.875rem', color: '#64748b' }}>ไม่ได้เลือกไฟล์ใด</p>
                   </div>
                   <input 
                     type="file" 
                     accept="image/*,.pdf"
-                    className={styles.slipInput}
+                    style={{ position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', opacity: '0', cursor: 'pointer' }}
                     onChange={handleFileSelect}
                   />
                 </>
               ) : (
-                <div className={styles.selectedFile}>
-                  <div className={styles.fileInfo}>
+                <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '2px solid #10b981', borderRadius: '12px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <CheckCircle size={24} color="#10b981" />
-                    <span className={styles.fileName}>ไฟล์: {selectedFile.name}</span>
+                    <span style={{ flex: '1', color: '#166534', fontWeight: '500' }}>ไฟล์: {selectedFile.name}</span>
                     <button 
-                      className={styles.removeFileBtn}
+                      style={{ background: '#ef4444', color: 'white', padding: '0.25rem 0.75rem', border: 'none', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
                       onClick={() => setSelectedFile(null)}
                     >
                       ลบไฟล์
@@ -189,18 +190,18 @@ export default function PaymentPage() {
               )}
             </div>
             
-            <p className={styles.uploadNote}>หลังชำระเงินแล้ว ให้แนบสลิปที่นี่</p>
+            <p style={{ fontSize: '0.875rem', color: '#64748b', textAlign: 'center', margin: '0' }}>หลังชำระเงินแล้ว ให้แนบสลิปที่นี่</p>
           </div>
 
-          <div className={styles.paymentActions}>
+          <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', padding: '2rem', background: 'white', borderRadius: '16px', boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.15)' }}>
             <button 
-              className={styles.cancelBtn}
-              onClick={() => window.location.href = '/dashboard'}
+              style={{ padding: '1rem 2.5rem', background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)', color: '#374151', border: '2px solid #d1d5db', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s ease' }}
+              onClick={() => window.location.href = '/payment-history'}
             >
               ยกเลิก
             </button>
             <button 
-              className={styles.submitBtn}
+              style={{ padding: '1rem 2.5rem', background: !selectedFile || uploading ? '#94a3b8' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: '2px solid #10b981', borderRadius: '12px', fontWeight: '600', cursor: !selectedFile || uploading ? 'not-allowed' : 'pointer', transition: 'all 0.3s ease' }}
               disabled={!selectedFile || uploading}
               onClick={handleUploadSlip}
             >

@@ -40,6 +40,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  padding-top: 80px;
 }
 
 a {
@@ -982,9 +983,11 @@ button {
   background: var(--surface);
   border-bottom: 1px solid var(--border-color);
   padding: 1rem 0;
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
@@ -4715,8 +4718,11 @@ button {
 }
 /* Header Sticky Fix */
 .landing-header {
-  position: sticky !important;
+  position: fixed !important;
   top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   z-index: 1001;
   background: white;
   border-bottom: 1px solid #e2e8f0;

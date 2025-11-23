@@ -6,6 +6,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  assetPrefix: '',
 };
 
 module.exports = nextConfig;

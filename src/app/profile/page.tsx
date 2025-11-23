@@ -56,7 +56,7 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const user = await response.json();
-        console.log('User data from API:', user); // Debug log
+        console.log('User data from API:', user);
         setUserInfo(prev => ({
           ...prev,
           fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
@@ -67,8 +67,11 @@ export default function ProfilePage() {
           major: user.major || '',
           gender: user.gender === 'male' ? 'ชาย' : user.gender === 'female' ? 'หญิง' : '',
           academicYear: user.year || '',
+          birthDate: user.birthDate || '',
+          currentAddress: user.currentAddress || '',
           guardianName: user.guardianName || '',
-          emergencyPhone: user.emergencyPhone || ''
+          emergencyPhone: user.emergencyPhone || '',
+          rentalStatus: user.status === 'pending' ? 'รอการอนุมัติ' : user.status === 'approved' ? 'อนุมัติแล้ว' : 'ไม่ระบุ'
         }));
       } else {
         console.log('Failed to fetch profile:', response.status);
@@ -217,7 +220,7 @@ export default function ProfilePage() {
                   <label>เพศ</label>
                   <select 
                     value={userInfo.gender}
-                    onChange={(e) => setUserInfo({...userInfo, gender: e.target.value})}
+                    onChange={(e: any) => setUserInfo({...userInfo, gender: e.target.value})}
                     disabled={!isEditing}
                   >
                     <option value="">เลือกเพศ</option>
@@ -229,7 +232,7 @@ export default function ProfilePage() {
                   <label>ปีการศึกษา</label>
                   <select 
                     value={userInfo.academicYear}
-                    onChange={(e) => setUserInfo({...userInfo, academicYear: e.target.value})}
+                    onChange={(e: any) => setUserInfo({...userInfo, academicYear: e.target.value})}
                     disabled={!isEditing}
                   >
                     <option value="">เลือกปีการศึกษา</option>
@@ -271,7 +274,7 @@ export default function ProfilePage() {
                   <label>ที่อยู่เต็ม</label>
                   <textarea 
                     value={userInfo.currentAddress}
-                    onChange={(e) => setUserInfo({...userInfo, currentAddress: e.target.value})}
+                    onChange={(e: any) => setUserInfo({...userInfo, currentAddress: e.target.value})}
                     placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
                     disabled={!isEditing}
                   />
@@ -346,7 +349,7 @@ export default function ProfilePage() {
                   <label>สถานะปัจจุบัน</label>
                   <select 
                     value={userInfo.rentalStatus}
-                    onChange={(e) => setUserInfo({...userInfo, rentalStatus: e.target.value})}
+                    onChange={(e: any) => setUserInfo({...userInfo, rentalStatus: e.target.value})}
                     disabled={!isEditing}
                   >
                     <option value="">เลือกสถานะ</option>

@@ -19,7 +19,7 @@ export default function LoginPage() {
     confirmPassword: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (isRegister) {
@@ -28,23 +28,57 @@ export default function LoginPage() {
         return;
       }
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const newUser = {
-        ...formData,
-        registrationDate: new Date().toISOString(),
-        roomStatus: null,
-        assignedRoom: null
-      };
-      
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-      localStorage.setItem('user', JSON.stringify(newUser));
-      
-      alert('ลงทะเบียนสำเร็จ!');
-      window.location.href = '/profile';
+      try {
+        const [firstName, ...lastNameParts] = formData.fullName.split(' ');
+        const lastName = lastNameParts.join(' ');
+        
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId: formData.studentId,
+            firstName,
+            lastName,
+            email: formData.email,
+            phone: formData.phone,
+            gender: formData.gender === 'ชาย' ? 'male' : 'female',
+            year: formData.year,
+            major: formData.major,
+            faculty: formData.faculty,
+            password: formData.password
+          })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          alert('ลงทะเบียนสำเร็จ!');
+          window.location.href = data.redirectTo || '/dashboard';
+        } else {
+          alert(data.error || 'เกิดข้อผิดพลาด');
+        }
+      } catch (error) {
+        alert('เกิดข้อผิดพลาดในการลงทะเบียน');
+      }
     } else {
-      // Login logic here
-      window.location.href = '/profile';
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identifier: formData.email,
+            password: formData.password
+          })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          window.location.href = data.redirectTo || '/dashboard';
+        } else {
+          alert(data.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+        }
+      } catch (error) {
+        alert('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      }
     }
   };
 
@@ -237,7 +271,7 @@ export default function LoginPage() {
               <input
                 name="email"
                 className={styles.input}
-                placeholder="admin@sisaket-charity.com หรือ 62010001"
+                placeholder="test@test.com หรือ 62010001"
                 required
                 type="text"
                 value={formData.email}

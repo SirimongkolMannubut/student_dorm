@@ -39,7 +39,7 @@ export default function ContractPage() {
           <div className="contract-content">
             {/* ข้อมูลคู่สัญญา */}
             <section className="contract-section">
-              <h3>📋 ข้อมูลคู่สัญญา</h3>
+              <h3>ข้อมูลคู่สัญญา</h3>
               <div className="contract-parties">
                 <div className="party">
                   <h4>ผู้ให้เช่า</h4>
@@ -60,7 +60,7 @@ export default function ContractPage() {
 
             {/* รายละเอียดห้องพัก */}
             <section className="contract-section">
-              <h3>🏠 รายละเอียดห้องพัก</h3>
+              <h3>รายละเอียดห้องพัก</h3>
               <div className="room-details">
                 <p><Home size={16} /> <strong>ห้องที่: {userInfo.roomNumber || 'A-301'}</strong></p>
                 <p>ขนาดห้อง: 3x4 เมตร</p>
@@ -71,7 +71,7 @@ export default function ContractPage() {
 
             {/* เงื่อนไขการเช่า */}
             <section className="contract-section">
-              <h3>💰 เงื่อนไขการเช่า</h3>
+              <h3>เงื่อนไขการเช่า</h3>
               <div className="rental-terms">
                 <div className="term-item">
                   <span>ค่าเช่ารายเดือน:</span>
@@ -102,7 +102,7 @@ export default function ContractPage() {
 
             {/* ระยะเวลา */}
             <section className="contract-section">
-              <h3>📅 ระยะเวลาสัญญา</h3>
+              <h3>ระยะเวลาสัญญา</h3>
               <div className="contract-period">
                 <p><Calendar size={16} /> วันที่เริ่มสัญญา: <strong>{userInfo.checkInDate}</strong></p>
                 <p><Calendar size={16} /> วันที่สิ้นสุดสัญญา: <strong>{userInfo.contractEndDate}</strong></p>
@@ -113,7 +113,7 @@ export default function ContractPage() {
 
             {/* กฎระเบียบ */}
             <section className="contract-section">
-              <h3>📜 กฎระเบียบหอพัก</h3>
+              <h3>กฎระเบียบหอพัก</h3>
               <div className="rules">
                 <ul>
                   <li>เวลาเข้า-ออกหอพัก: 06:00-22:00 น.</li>
@@ -129,7 +129,7 @@ export default function ContractPage() {
 
             {/* เงื่อนไขพิเศษ */}
             <section className="contract-section">
-              <h3>⚖️ เงื่อนไขพิเศษ</h3>
+              <h3>เงื่อนไขพิเศษ</h3>
               <div className="special-terms">
                 <p><strong>การยกเลิกสัญญา:</strong> แจ้งล่วงหน้า 30 วัน</p>
                 <p><strong>ค่าปรับ:</strong> ชำระเงินล่าช้า 50 บาท/วัน</p>
@@ -140,7 +140,7 @@ export default function ContractPage() {
 
             {/* ลายเซ็น */}
             <section className="contract-section">
-              <h3>✍️ ลายเซ็นดิจิทัล</h3>
+              <h3>ลายเซ็นดิจิทัล</h3>
               <div className="signatures">
                 <div className="signature-box">
                   <p>ผู้ให้เช่า</p>

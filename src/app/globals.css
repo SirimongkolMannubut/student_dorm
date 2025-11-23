@@ -159,69 +159,7 @@ button {
   color: white;
 }
 
-/* Dashboard Page */
-.dashboard-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
 
-.dashboard-main {
-  width: 100%;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* Dashboard Hero Section */
-.dashboard-hero {
-  background: linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%);
-  color: white;
-  padding: 4rem 0 6rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.dashboard-hero-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.dashboard-hero-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  position: relative;
-  z-index: 1;
-}
-
-.dashboard-hero-content {
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-  animation: fade-in-up 0.8s ease-out;
-}
-
-.dashboard-hero-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-  color: white;
-}
-
-.dashboard-hero-description {
-  font-size: 1.125rem;
-  line-height: 1.8;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 0;
-}
 
 /* Overview Section */
 .overview-section {

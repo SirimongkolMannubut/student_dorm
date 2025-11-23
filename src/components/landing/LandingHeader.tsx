@@ -19,10 +19,6 @@ export default function LandingHeader() {
           <Link href="#about" className="nav-link">
             เกี่ยวกับ
           </Link>
-          <button type="button" className="nav-link btn-nav" onClick={() => open()}>
-            <LogIn size={18} />
-            เข้าสู่ระบบ
-          </button>
         </nav>
       </div>
     </header>

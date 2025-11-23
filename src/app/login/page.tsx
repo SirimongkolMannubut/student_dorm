@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     studentId: '',
     fullName: '',
+    gender: '',
     year: '',
     major: '',
     faculty: '',
@@ -40,10 +41,10 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(newUser));
       
       alert('ลงทะเบียนสำเร็จ!');
-      window.location.href = '/dashboard';
+      window.location.href = '/profile';
     } else {
       // Login logic here
-      window.location.href = '/dashboard';
+      window.location.href = '/profile';
     }
   };
 
@@ -117,6 +118,21 @@ export default function LoginPage() {
                 value={formData.fullName}
                 onChange={handleChange}
               />
+            </label>
+
+            <label className={styles.label}>
+              เพศ
+              <select
+                name="gender"
+                className={styles.input}
+                required
+                value={formData.gender}
+                onChange={handleChange}
+              >
+                <option value="">เลือกเพศ</option>
+                <option value="ชาย">ชาย</option>
+                <option value="หญิง">หญิง</option>
+              </select>
             </label>
 
             <label className={styles.label}>

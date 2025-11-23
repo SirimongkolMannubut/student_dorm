@@ -1,22 +1,63 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Search, Check, X, Eye } from 'lucide-react';
 import AdminHeader from '../../../components/AdminHeader';
 import '../../../styles/admin.css';
 
-const students = [
-  { id: 1, name: 'สมชาย ใจดี', studentId: '65001234', room: 'A301', status: 'pending', phone: '081-234-5678' },
-  { id: 2, name: 'สมหญิง สวยงาม', studentId: '65001235', room: 'B205', status: 'approved', phone: '082-345-6789' },
-  { id: 3, name: 'วิชัย เก่งมาก', studentId: '65001236', room: null, status: 'rejected', phone: '083-456-7890' },
-];
-
 export default function StudentsPage() {
   const [filter, setFilter] = useState('all');
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      const response = await fetch('/api/students');
+      const data = await response.json();
+      setStudents(data);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStudentStatus = async (userId, status) => {
+    try {
+      const response = await fetch('/api/students', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status })
+      });
+      
+      if (response.ok) {
+        fetchStudents(); // Refresh data
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
 
   const filteredStudents = students.filter(student => 
     filter === 'all' || student.status === filter
   );
+
+  if (loading) {
+    return (
+      <div className="admin-page">
+        <AdminHeader />
+        <main className="admin-main">
+          <div className="admin-container">
+            <div>Loading...</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page">
@@ -81,10 +122,10 @@ export default function StudentsPage() {
               </thead>
               <tbody>
                 {filteredStudents.map(student => (
-                  <tr key={student.id}>
+                  <tr key={student._id}>
                     <td>{student.studentId}</td>
-                    <td>{student.name}</td>
-                    <td>{student.room || '-'}</td>
+                    <td>{student.firstName} {student.lastName}</td>
+                    <td>{student.room?.number || '-'}</td>
                     <td>{student.phone}</td>
                     <td>
                       <span className={`status-badge ${student.status}`}>
@@ -100,10 +141,16 @@ export default function StudentsPage() {
                         </button>
                         {student.status === 'pending' && (
                           <>
-                            <button className="action-btn approve">
+                            <button 
+                              className="action-btn approve"
+                              onClick={() => updateStudentStatus(student._id, 'approved')}
+                            >
                               <Check size={16} />
                             </button>
-                            <button className="action-btn reject">
+                            <button 
+                              className="action-btn reject"
+                              onClick={() => updateStudentStatus(student._id, 'rejected')}
+                            >
                               <X size={16} />
                             </button>
                           </>

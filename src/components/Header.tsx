@@ -1,37 +1,96 @@
 'use client';
 
-import { Search, Bell, User, LogOut } from 'lucide-react';
+import { Menu, X, User, Bell } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
-    <header className="header">
-      <div className="header-container">
-        <div className="header-logo">
-          <h1>SSKRU Dormitory System</h1>
+    <>
+      <header className="landing-header">
+        <div className="landing-header-container">
+          <div className="header-left">
+            <button 
+              className="menu-toggle"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <Menu size={24} />
+            </button>
+            <div className="landing-logo">
+              <h1>SSKRU Dormitory System</h1>
+            </div>
+          </div>
+          <nav className="landing-nav">
+            <button className="nav-link">
+              <Bell size={18} />
+            </button>
+            <button className="nav-link">
+              <User size={18} />
+              Profile
+            </button>
+          </nav>
         </div>
-        
-        <div className="header-actions">
-          <button className="header-icon-btn" aria-label="Search">
-            <Search size={20} />
-          </button>
-          
-          <button className="header-icon-btn" aria-label="Notifications">
-            <Bell size={20} />
-            <span className="notification-badge">3</span>
-          </button>
-          
-          <div className="header-profile">
-            <button className="profile-btn">
-              <User size={20} />
-              <span>Admin User</span>
-            </button>
-            <button className="logout-btn" aria-label="Logout">
-              <LogOut size={18} />
-            </button>
+      </header>
+
+      {/* Sidebar Menu */}
+      {isMenuOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsMenuOpen(false)}>
+          <div className="sidebar-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="sidebar-content">
+              <div className="menu-item primary">
+                <span>กรอกข้อมูลผู้กู้</span>
+              </div>
+              
+              <div className="menu-group">
+                <div className="menu-item parent">
+                  <span>ข้อมูลผู้เช่า</span>
+                </div>
+                <div className="submenu">
+                  <div className="menu-item sub" onClick={() => window.location.href = '/profile'}>
+                    <span>ข้อมูลส่วนตัว</span>
+                  </div>
+                  <div className="menu-item sub" onClick={() => window.location.href = '/contract'}>
+                    <span>สัญญาเช่า</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <span>ประวัติการชำระเงิน</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <span>แจ้งซ่อม</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <span>เอกสารผู้เช่า</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <span>ประวัติการย้ายเข้า-ออก</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <span>การแจ้งเตือน</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="menu-group">
+                <div className="menu-item parent">
+                  <span>เอกสาร</span>
+                </div>
+                <div className="submenu">
+                  <div className="menu-item sub">
+                    <span>เอกสารที่ส่งแล้ว</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <span>ส่งเอกสาร</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <span>ดาวน์โหลดเอกสาร</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      )}
+    </>
   );
 }
-

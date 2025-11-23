@@ -313,13 +313,6 @@ export default function DashboardPage() {
       {isMenuOpen && (
         <div className="sidebar-overlay" onClick={() => setIsMenuOpen(false)}>
           <div className="sidebar-menu" onClick={(e) => e.stopPropagation()}>
-            <div className="sidebar-header">
-              <Menu size={20} />
-              <h3>เมนูหลัก</h3>
-              <button onClick={() => setIsMenuOpen(false)}>
-                <X size={20} />
-              </button>
-            </div>
             <div className="sidebar-content">
               <div className="menu-item primary">
                 <UserPlus size={18} />

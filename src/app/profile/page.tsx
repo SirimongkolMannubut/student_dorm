@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, User, FileText, Save, Edit, Camera, Home, Calendar, Phone, Mail, MapPin } from 'lucide-react';
-import Link from 'next/link';
+import { User, FileText, Save, Edit, Camera, Home, Calendar, Phone, Mail, MapPin } from 'lucide-react';
+import Header from '../../components/Header';
 
 export default function ProfilePage() {
   const [userInfo, setUserInfo] = useState({
@@ -62,19 +62,7 @@ export default function ProfilePage() {
 
   return (
     <div className="profile-page">
-      <header className="landing-header">
-        <div className="landing-header-container">
-          <div className="landing-logo">
-            <h1>SSKRU Dormitory System</h1>
-          </div>
-          <nav className="landing-nav">
-            <Link href="/dashboard" className="nav-link">
-              <ArrowLeft size={18} />
-              กลับ Dashboard
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="profile-main">
         <div className="profile-container">

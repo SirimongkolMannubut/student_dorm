@@ -1,238 +1,166 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, FileText, Download, Check } from 'lucide-react';
-import Link from 'next/link';
+import { FileText, Download, Calendar, User, Home, Phone } from 'lucide-react';
+import Header from '../../components/Header';
 
 export default function ContractPage() {
-  const [contractData, setContractData] = useState<any>(null);
-  const [isAgreed, setIsAgreed] = useState(false);
+  const [userInfo, setUserInfo] = useState({
+    fullName: '',
+    studentId: '',
+    phone: '',
+    guardianName: '',
+    emergencyPhone: '',
+    roomNumber: '',
+    checkInDate: '',
+    contractEndDate: ''
+  });
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       const user = JSON.parse(userData);
-      const today = new Date();
-      
-      setContractData({
-        contractId: `DORM-${Date.now()}`,
-        contractDate: today.toLocaleDateString('th-TH'),
-        
-        // ข้อมูลผู้เช่า
-        studentName: user.fullName || '',
-        studentId: user.studentId || '',
-        faculty: user.faculty || '',
-        major: user.major || '',
-        phone: user.phone || '',
-        address: user.address || '',
-        
-        // ข้อมูลห้อง
-        roomNumber: 'A301',
-        floor: '3',
-        building: 'A',
-        
-        // ข้อมูลราคา
-        pricePerTerm: 3500,
-        priceTotal: 7000,
-        deposit: 400,
-        keyDeposit: 50,
-        
-        // ลายเซ็นดิจิทัล
-        digitalSignature: user.digitalSignature || user.fullName || '',
-        
-        // ข้อมูลผู้ปกครอง
-        parentName: user.parentName || '',
-        parentPhone: user.parentPhone || ''
-      });
+      setUserInfo(user);
     }
   }, []);
 
-  const handleDownloadPDF = () => {
-    alert('ดาวน์โหลด PDF สัญญาดิจิทัลสำเร็จ!');
-  };
-
-  const handleDigitalSign = () => {
-    if (!isAgreed) {
-      alert('กรุณายอมรับข้อตกลงก่อนลงนาม');
-      return;
-    }
-    
-    alert('ลงนามดิจิทัลสำเร็จ!\n\nสัญญามีผลบังคับใช้ทันที\nสามารถเข้าพักได้แล้ว');
-    window.location.href = '/dashboard';
-  };
-
-  if (!contractData) return <div>Loading...</div>;
-
   return (
     <div className="contract-page">
-      <header className="landing-header">
-        <div className="landing-header-container">
-          <div className="landing-logo">
-            <h1>SSKRU Dormitory System</h1>
-          </div>
-          <nav className="landing-nav">
-            <Link href="/dashboard" className="nav-link">
-              <ArrowLeft size={18} />
-              กลับ Dashboard
-            </Link>
-          </nav>
-        </div>
-      </header>
-
+      <Header />
+      
       <main className="contract-main">
         <div className="contract-container">
           <div className="contract-header">
             <FileText size={32} />
-            <h1>สัญญาเช่าห้องพักดิจิทัล</h1>
-            <p>Digital Dormitory Rental Agreement</p>
-            <div className="contract-meta">
-              <span>เลขที่สัญญา: {contractData.contractId}</span>
-              <span>วันที่: {contractData.contractDate}</span>
-            </div>
+            <h1>สัญญาเช่าหอพัก</h1>
+            <p>มหาวิทยาลัยราชภัฏศรีสะเกษ</p>
           </div>
 
           <div className="contract-content">
             {/* ข้อมูลคู่สัญญา */}
             <section className="contract-section">
               <h3>📋 ข้อมูลคู่สัญญา</h3>
-              <div className="party-info">
-                <div className="lessor">
+              <div className="contract-parties">
+                <div className="party">
                   <h4>ผู้ให้เช่า</h4>
-                  <p><strong>หอพักนักศึกษา มหาวิทยาลัยราชภัฏศรีสะเกษ</strong></p>
-                  <p>319 หมู่ 8 ถนนไทยพันทา ตำบลโพธิ์ อำเภอเมือง จังหวัดศรีสะเกษ 33000</p>
+                  <p><strong>มหาวิทยาลัยราชภัฏศรีสะเกษ</strong></p>
+                  <p>เลขที่ 680 ถนนศรีสะเกษ ตำบลเมืองใต้ อำเภอเมือง จังหวัดศรีสะเกษ 33000</p>
+                  <p>โทร: 045-611-111</p>
                 </div>
-                <div className="lessee">
+                <div className="party">
                   <h4>ผู้เช่า</h4>
-                  <p><strong>{contractData.studentName}</strong></p>
-                  <p>รหัส: {contractData.studentId}</p>
-                  <p>{contractData.faculty} - {contractData.major}</p>
-                  <p>โทร: {contractData.phone}</p>
+                  <p><User size={16} /> <strong>{userInfo.fullName}</strong></p>
+                  <p>รหัสนักศึกษา: {userInfo.studentId}</p>
+                  <p><Phone size={16} /> {userInfo.phone}</p>
+                  <p>ผู้ปกครอง: {userInfo.guardianName}</p>
+                  <p>เบอร์ฉุกเฉิน: {userInfo.emergencyPhone}</p>
                 </div>
               </div>
             </section>
 
-            {/* ข้อมูลห้อง */}
+            {/* รายละเอียดห้องพัก */}
             <section className="contract-section">
-              <h3>🏠 ข้อมูลห้องพัก</h3>
+              <h3>🏠 รายละเอียดห้องพัก</h3>
               <div className="room-details">
-                <div className="detail-row">
-                  <span>ห้องเลขที่:</span>
-                  <strong>{contractData.roomNumber}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>ชั้น:</span>
-                  <strong>{contractData.floor}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>อาคาร:</span>
-                  <strong>{contractData.building}</strong>
-                </div>
+                <p><Home size={16} /> <strong>ห้องที่: {userInfo.roomNumber || 'A-301'}</strong></p>
+                <p>ขนาดห้อง: 3x4 เมตร</p>
+                <p>จำนวนเตียง: 1 เตียง</p>
+                <p>สิ่งอำนวยความสะดวก: เตียง ตู้เสื้อผ้า โต๊ะเขียนหนังสือ เก้าอี้ พัดลม แอร์</p>
               </div>
             </section>
 
-            {/* ข้อมูลราคา */}
+            {/* เงื่อนไขการเช่า */}
             <section className="contract-section">
-              <h3>💰 ค่าใช้จ่าย</h3>
-              <div className="pricing-table">
-                <div className="price-row">
-                  <span>ค่าเช่าต่อภาค:</span>
-                  <strong>{contractData.pricePerTerm.toLocaleString()} บาท</strong>
+              <h3>💰 เงื่อนไขการเช่า</h3>
+              <div className="rental-terms">
+                <div className="term-item">
+                  <span>ค่าเช่ารายเดือน:</span>
+                  <strong>3,500 บาท</strong>
                 </div>
-                <div className="price-row">
-                  <span>รวม 2 ภาค:</span>
-                  <strong>{contractData.priceTotal.toLocaleString()} บาท</strong>
+                <div className="term-item">
+                  <span>ค่ามัดจำ:</span>
+                  <strong>3,500 บาท</strong>
                 </div>
-                <div className="price-row">
-                  <span>เงินประกัน:</span>
-                  <strong>{contractData.deposit} บาท</strong>
+                <div className="term-item">
+                  <span>ค่าไฟฟ้า:</span>
+                  <strong>หน่วยละ 8 บาท</strong>
                 </div>
-                <div className="price-row">
-                  <span>ค่ากุญแจ:</span>
-                  <strong>{contractData.keyDeposit} บาท</strong>
+                <div className="term-item">
+                  <span>ค่าน้ำประปา:</span>
+                  <strong>เหมาจ่าย 200 บาท/เดือน</strong>
                 </div>
-                <div className="price-row total">
-                  <span>รวมทั้งสิ้น:</span>
-                  <strong>{(contractData.priceTotal + contractData.deposit + contractData.keyDeposit).toLocaleString()} บาท</strong>
+                <div className="term-item">
+                  <span>ค่าอินเทอร์เน็ต:</span>
+                  <strong>เหมาจ่าย 300 บาท/เดือน</strong>
+                </div>
+                <div className="term-item">
+                  <span>วันครบกำหนดชำระ:</span>
+                  <strong>วันที่ 5 ของทุกเดือน</strong>
                 </div>
               </div>
             </section>
 
-            {/* เงื่อนไขสำคัญ */}
+            {/* ระยะเวลา */}
             <section className="contract-section">
-              <h3>📜 เงื่อนไขสำคัญ</h3>
-              <div className="terms-list">
-                <div className="term-item">
-                  <Check size={16} />
-                  <span>ใช้เป็นที่พักอาศัยนักศึกษาเท่านั้น</span>
-                </div>
-                <div className="term-item">
-                  <Check size={16} />
-                  <span>ปฏิบัติตามกฎระเบียบหอพักทุกข้อ</span>
-                </div>
-                <div className="term-item">
-                  <Check size={16} />
-                  <span>ค่าน้ำ 30 บาท/เดือน ค่าไฟ 5 บาท/หน่วย</span>
-                </div>
-                <div className="term-item">
-                  <Check size={16} />
-                  <span>แจ้งออกล่วงหน้า 30 วัน</span>
-                </div>
-                <div className="term-item">
-                  <Check size={16} />
-                  <span>ห้ามนำผู้อื่นเข้าพักโดยไม่ได้รับอนุญาต</span>
-                </div>
+              <h3>📅 ระยะเวลาสัญญา</h3>
+              <div className="contract-period">
+                <p><Calendar size={16} /> วันที่เริ่มสัญญา: <strong>{userInfo.checkInDate}</strong></p>
+                <p><Calendar size={16} /> วันที่สิ้นสุดสัญญา: <strong>{userInfo.contractEndDate}</strong></p>
+                <p>ระยะเวลา: <strong>1 ปีการศึกษา</strong></p>
+                <p>การต่อสัญญา: ต้องแจ้งล่วงหน้า 30 วัน</p>
               </div>
             </section>
 
-            {/* ลายเซ็นดิจิทัล */}
-            <section className="contract-section signature-section">
+            {/* กฎระเบียบ */}
+            <section className="contract-section">
+              <h3>📜 กฎระเบียบหอพัก</h3>
+              <div className="rules">
+                <ul>
+                  <li>เวลาเข้า-ออกหอพัก: 06:00-22:00 น.</li>
+                  <li>ห้ามนำแขกเข้าพักค้างคืน</li>
+                  <li>ห้ามสูบบุหรี่ในหอพัก</li>
+                  <li>ห้ามดื่มสุราในหอพัก</li>
+                  <li>ห้ามทำเสียงดังรบกวนผู้อื่น</li>
+                  <li>ต้องรักษาความสะอาดส่วนรวม</li>
+                  <li>ห้ามปรับแต่งห้องพักโดยไม่ได้รับอนุญาต</li>
+                </ul>
+              </div>
+            </section>
+
+            {/* เงื่อนไขพิเศษ */}
+            <section className="contract-section">
+              <h3>⚖️ เงื่อนไขพิเศษ</h3>
+              <div className="special-terms">
+                <p><strong>การยกเลิกสัญญา:</strong> แจ้งล่วงหน้า 30 วัน</p>
+                <p><strong>ค่าปรับ:</strong> ชำระเงินล่าช้า 50 บาท/วัน</p>
+                <p><strong>ค่าเสียหาย:</strong> ตามราคาทุนจริง</p>
+                <p><strong>การคืนเงินมัดจำ:</strong> หักค่าเสียหายและค่าทำความสะอาด</p>
+              </div>
+            </section>
+
+            {/* ลายเซ็น */}
+            <section className="contract-section">
               <h3>✍️ ลายเซ็นดิจิทัล</h3>
               <div className="signatures">
                 <div className="signature-box">
-                  <h4>ผู้ให้เช่า</h4>
-                  <div className="signature-display">นางเพ็ญพักตร์ สุมณฑา</div>
-                  <p>หัวหน้างานพัฒนานักศึกษา</p>
-                  <small>ลงนามดิจิทัล: {contractData.contractDate}</small>
+                  <p>ผู้ให้เช่า</p>
+                  <div className="signature">มหาวิทยาลัยราชภัฏศรีสะเกษ</div>
+                  <p>วันที่: {new Date().toLocaleDateString('th-TH')}</p>
                 </div>
                 <div className="signature-box">
-                  <h4>ผู้เช่า</h4>
-                  <div className="signature-display">{contractData.digitalSignature}</div>
-                  <p>นักศึกษา รหัส {contractData.studentId}</p>
-                  <small>รอลงนามดิจิทัล</small>
+                  <p>ผู้เช่า</p>
+                  <div className="signature">{userInfo.fullName}</div>
+                  <p>วันที่: {new Date().toLocaleDateString('th-TH')}</p>
                 </div>
               </div>
             </section>
+          </div>
 
-            {/* ยอมรับข้อตกลง */}
-            <section className="agreement-section">
-              <div className="agreement-checkbox">
-                <input 
-                  type="checkbox" 
-                  id="agreement"
-                  checked={isAgreed}
-                  onChange={(e) => setIsAgreed(e.target.checked)}
-                />
-                <label htmlFor="agreement">
-                  ข้าพเจ้าได้อ่านและเข้าใจเงื่อนไขทั้งหมดแล้ว ยอมรับที่จะปฏิบัติตามสัญญานี้ทุกประการ
-                </label>
-              </div>
-            </section>
-
-            {/* ปุ่มดำเนินการ */}
-            <section className="contract-actions">
-              <button className="download-btn" onClick={handleDownloadPDF}>
-                <Download size={20} />
-                ดาวน์โหลด PDF
-              </button>
-              <button 
-                className={`sign-btn ${!isAgreed ? 'disabled' : ''}`}
-                onClick={handleDigitalSign}
-                disabled={!isAgreed}
-              >
-                <FileText size={20} />
-                ลงนามดิจิทัล
-              </button>
-            </section>
+          <div className="contract-actions">
+            <button className="download-btn">
+              <Download size={20} />
+              ดาวน์โหลดสัญญา PDF
+            </button>
           </div>
         </div>
       </main>

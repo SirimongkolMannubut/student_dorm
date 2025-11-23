@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, CreditCard, Wrench, FileText, User, Bell, Calendar, MapPin } from 'lucide-react';
+import { Home, CreditCard, Wrench, FileText, User, Bell, Calendar, MapPin, Menu, X, UserPlus, Users, FolderOpen, Send, Download, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [studentId, setStudentId] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [quickStats, setQuickStats] = useState([
     { label: 'ห้องของฉัน', value: 'ยังไม่ได้เลือกห้อง', icon: <Home size={20} />, color: '#94A3B8' },
     { label: 'ค่าเช่าเดือนนี้', value: '-', icon: <CreditCard size={20} />, color: '#94A3B8' },
@@ -115,8 +116,16 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="landing-header">
         <div className="landing-header-container">
-          <div className="landing-logo">
-            <h1>SSKRU Dormitory System</h1>
+          <div className="header-left">
+            <button 
+              className="menu-toggle"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <Menu size={24} />
+            </button>
+            <div className="landing-logo">
+              <h1>SSKRU Dormitory System</h1>
+            </div>
           </div>
           <nav className="landing-nav" style={{ gap: '0.25rem' }}>
             <button 
@@ -300,6 +309,92 @@ export default function DashboardPage() {
         </div>
       </main>
       
+      {/* Sidebar Menu */}
+      {isMenuOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsMenuOpen(false)}>
+          <div className="sidebar-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="sidebar-header">
+              <Menu size={20} />
+              <h3>เมนูหลัก</h3>
+              <button onClick={() => setIsMenuOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="sidebar-content">
+              <div className="menu-item primary">
+                <UserPlus size={18} />
+                <span>กรอกข้อมูลผู้กู้</span>
+              </div>
+              
+              <div className="menu-group">
+                <div className="menu-item parent">
+                  <Users size={18} />
+                  <span>ข้อมูลผู้เช่า</span>
+                  <ChevronRight size={16} className="chevron" />
+                </div>
+                <div className="submenu">
+                  <div className="menu-item sub" onClick={() => window.location.href = '/profile'}>
+                    <User size={14} />
+                    <span>ข้อมูลส่วนตัว</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <FileText size={14} />
+                    <span>สัญญาเช่า</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <CreditCard size={14} />
+                    <span>ประวัติการชำระเงิน</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <Wrench size={14} />
+                    <span>แจ้งซ่อม</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <FolderOpen size={14} />
+                    <span>เอกสารผู้เช่า</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <Home size={14} />
+                    <span>ประวัติการย้ายเข้า-ออก</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <Bell size={14} />
+                    <span>การแจ้งเตือน</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="menu-group">
+                <div className="menu-item parent">
+                  <FileText size={18} />
+                  <span>เอกสาร</span>
+                  <ChevronRight size={16} className="chevron" />
+                </div>
+                <div className="submenu">
+                  <div className="menu-item sub">
+                    <FolderOpen size={14} />
+                    <span>เอกสารที่ส่งแล้ว</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <Send size={14} />
+                    <span>ส่งเอกสาร</span>
+                  </div>
+                  <div className="menu-item sub">
+                    <Download size={14} />
+                    <span>ดาวน์โหลดเอกสาร</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="menu-item primary">
+                <UserPlus size={18} />
+                <span>ยื่นกู้รายใหม่</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Overlay */}
       {(showNotifications || showProfile) && (
         <div 

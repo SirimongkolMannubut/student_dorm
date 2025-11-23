@@ -1,21 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, User, FileText, Save } from 'lucide-react';
+import { ArrowLeft, User, FileText, Save, Edit, Camera, Home, Calendar, Phone, Mail, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ProfilePage() {
   const [userInfo, setUserInfo] = useState({
     fullName: '',
     studentId: '',
-    email: '',
-    phone: '',
-    year: '',
-    major: '',
     faculty: '',
-    address: '',
-    emergencyContact: '',
-    emergencyPhone: ''
+    major: '',
+    phone: '',
+    email: '',
+    birthDate: '',
+    gender: '',
+    academicYear: '',
+    currentAddress: '',
+    houseNumber: '',
+    province: '',
+    guardianName: '',
+    emergencyPhone: '',
+    roomNumber: '',
+    checkInDate: '',
+    contractEndDate: '',
+    rentalStatus: '',
+    profileImage: ''
   });
 
   const [contractData, setContractData] = useState({
@@ -75,15 +84,15 @@ export default function ProfilePage() {
           </div>
 
           <div className="profile-sections">
-            {/* ข้อมูลนักศึกษา */}
+            {/* ข้อมูลส่วนตัว */}
             <div className="section">
               <div className="section-header">
                 <User size={20} />
-                <h3>ข้อมูลนักศึกษา</h3>
+                <h3>ข้อมูลส่วนตัว</h3>
               </div>
               <div className="form-grid">
                 <div className="form-group">
-                  <label>ชื่อ-นามสกุล</label>
+                  <label>ชื่อ–นามสกุล</label>
                   <input 
                     type="text" 
                     value={userInfo.fullName}
@@ -99,6 +108,26 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="form-group">
+                  <label>คณะ / สาขา</label>
+                  <input 
+                    type="text" 
+                    value={`${userInfo.faculty} / ${userInfo.major}`}
+                    onChange={(e) => {
+                      const [faculty, major] = e.target.value.split(' / ');
+                      setUserInfo({...userInfo, faculty: faculty || '', major: major || ''});
+                    }}
+                    placeholder="คณะ / สาขา"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>เบอร์โทร</label>
+                  <input 
+                    type="tel" 
+                    value={userInfo.phone}
+                    onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})}
+                  />
+                </div>
+                <div className="form-group">
                   <label>อีเมล</label>
                   <input 
                     type="email" 
@@ -107,81 +136,87 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>เบอร์โทรศัพท์</label>
+                  <label>วันเกิด</label>
                   <input 
-                    type="tel" 
-                    value={userInfo.phone}
-                    onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})}
+                    type="date" 
+                    value={userInfo.birthDate}
+                    onChange={(e) => setUserInfo({...userInfo, birthDate: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
-                  <label>ชั้นปี</label>
+                  <label>เพศ</label>
                   <select 
-                    value={userInfo.year}
-                    onChange={(e) => setUserInfo({...userInfo, year: e.target.value})}
+                    value={userInfo.gender}
+                    onChange={(e) => setUserInfo({...userInfo, gender: e.target.value})}
                   >
-                    <option value="">เลือกชั้นปี</option>
+                    <option value="">เลือกเพศ</option>
+                    <option value="ชาย">ชาย</option>
+                    <option value="หญิง">หญิง</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>ปีการศึกษา</label>
+                  <select 
+                    value={userInfo.academicYear}
+                    onChange={(e) => setUserInfo({...userInfo, academicYear: e.target.value})}
+                  >
+                    <option value="">เลือกปีการศึกษา</option>
                     <option value="1">ปี 1</option>
                     <option value="2">ปี 2</option>
                     <option value="3">ปี 3</option>
                     <option value="4">ปี 4</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            {/* ที่อยู่ปัจจุบัน */}
+            <div className="section">
+              <div className="section-header">
+                <MapPin size={20} />
+                <h3>🔹 ที่อยู่ปัจจุบัน (ถ้ามี)</h3>
+              </div>
+              <div className="form-grid">
                 <div className="form-group">
-                  <label>สาขาวิชา</label>
+                  <label>บ้านเลขที่</label>
                   <input 
                     type="text" 
-                    value={userInfo.major}
-                    onChange={(e) => setUserInfo({...userInfo, major: e.target.value})}
+                    value={userInfo.houseNumber}
+                    onChange={(e) => setUserInfo({...userInfo, houseNumber: e.target.value})}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>จังหวัด</label>
+                  <input 
+                    type="text" 
+                    value={userInfo.province}
+                    onChange={(e) => setUserInfo({...userInfo, province: e.target.value})}
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label>ที่อยู่เต็ม</label>
+                  <textarea 
+                    value={userInfo.currentAddress}
+                    onChange={(e) => setUserInfo({...userInfo, currentAddress: e.target.value})}
+                    placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
                   />
                 </div>
               </div>
             </div>
 
-            {/* ข้อมูลสำหรับสัญญา */}
+            {/* ผู้ปกครอง */}
             <div className="section">
               <div className="section-header">
-                <FileText size={20} />
-                <h3>ข้อมูลสำหรับสัญญาเช่า</h3>
+                <Phone size={20} />
+                <h3>ผู้ปกครอง / เบอร์ติดต่อฉุกเฉิน</h3>
               </div>
               <div className="form-grid">
-                <div className="form-group full-width">
-                  <label>ที่อยู่ปัจจุบัน</label>
-                  <textarea 
-                    value={userInfo.address}
-                    onChange={(e) => setUserInfo({...userInfo, address: e.target.value})}
-                    placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
-                  />
-                </div>
                 <div className="form-group">
                   <label>ชื่อผู้ปกครอง</label>
                   <input 
                     type="text" 
-                    value={contractData.parentName}
-                    onChange={(e) => setContractData({...contractData, parentName: e.target.value})}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>เบอร์โทรผู้ปกครอง</label>
-                  <input 
-                    type="tel" 
-                    value={contractData.parentPhone}
-                    onChange={(e) => setContractData({...contractData, parentPhone: e.target.value})}
-                  />
-                </div>
-                <div className="form-group full-width">
-                  <label>ที่อยู่ผู้ปกครอง</label>
-                  <textarea 
-                    value={contractData.parentAddress}
-                    onChange={(e) => setContractData({...contractData, parentAddress: e.target.value})}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>ผู้ติดต่อฉุกเฉิน</label>
-                  <input 
-                    type="text" 
-                    value={userInfo.emergencyContact}
-                    onChange={(e) => setUserInfo({...userInfo, emergencyContact: e.target.value})}
+                    value={userInfo.guardianName}
+                    onChange={(e) => setUserInfo({...userInfo, guardianName: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
@@ -195,38 +230,70 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* ลายเซ็นดิจิทัล */}
+            {/* สถานะผู้เช่า */}
             <div className="section">
               <div className="section-header">
-                <FileText size={20} />
-                <h3>ลายเซ็นดิจิทัล</h3>
+                <Home size={20} />
+                <h3>🔹 สถานะผู้เช่า</h3>
               </div>
-              <div className="signature-section">
+              <div className="form-grid">
                 <div className="form-group">
-                  <label>พิมพ์ชื่อเพื่อเป็นลายเซ็นดิจิทัล</label>
+                  <label>ห้องที่เช่า</label>
                   <input 
                     type="text" 
-                    value={contractData.digitalSignature}
-                    onChange={(e) => setContractData({...contractData, digitalSignature: e.target.value})}
-                    placeholder="พิมพ์ชื่อของคุณ"
-                    className="signature-input"
+                    value={userInfo.roomNumber}
+                    onChange={(e) => setUserInfo({...userInfo, roomNumber: e.target.value})}
+                    placeholder="เช่น A-301"
                   />
                 </div>
-                <div className="signature-preview">
-                  <p>ตัวอย่างลายเซ็น:</p>
-                  <div className="signature-display">
-                    {contractData.digitalSignature || 'ชื่อของคุณจะแสดงที่นี่'}
-                  </div>
+                <div className="form-group">
+                  <label>วันที่เข้าพัก</label>
+                  <input 
+                    type="date" 
+                    value={userInfo.checkInDate}
+                    onChange={(e) => setUserInfo({...userInfo, checkInDate: e.target.value})}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>วันที่ครบกำหนดสัญญา</label>
+                  <input 
+                    type="date" 
+                    value={userInfo.contractEndDate}
+                    onChange={(e) => setUserInfo({...userInfo, contractEndDate: e.target.value})}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>สถานะปัจจุบัน</label>
+                  <select 
+                    value={userInfo.rentalStatus}
+                    onChange={(e) => setUserInfo({...userInfo, rentalStatus: e.target.value})}
+                  >
+                    <option value="">เลือกสถานะ</option>
+                    <option value="กำลังเช่า">กำลังเช่า</option>
+                    <option value="รอย้ายออก">รอย้ายออก</option>
+                    <option value="ไม่ต่อสัญญา">ไม่ต่อสัญญา</option>
+                  </select>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="save-section">
-            <button className="save-btn" onClick={handleSave}>
-              <Save size={20} />
-              บันทึกข้อมูล & สร้างสัญญาดิจิทัล
-            </button>
+          <div className="action-buttons">
+            <h3>🔹 ปุ่มที่ควรมี</h3>
+            <div className="buttons-grid">
+              <button className="action-btn edit-btn">
+                <Edit size={20} />
+                แก้ไขข้อมูล
+              </button>
+              <button className="action-btn upload-btn">
+                <Camera size={20} />
+                อัปโหลดรูปโปรไฟล์
+              </button>
+              <button className="action-btn save-btn" onClick={handleSave}>
+                <Save size={20} />
+                บันทึกข้อมูล
+              </button>
+            </div>
           </div>
         </div>
       </main>

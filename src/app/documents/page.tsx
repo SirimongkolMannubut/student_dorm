@@ -21,7 +21,7 @@ export default function DocumentsPage() {
     const mockDocuments: Document[] = [
       {
         id: 1488,
-        title: 'ยื่นกู้รายเก่าเลื่อนชั้นปี',
+        title: 'คำร้องขอเข้าพักหอพัก',
         semester: '1 / 2568',
         submitDate: '23-02-2568 18:29:31',
         reviewDate: '24-02-2568 11:35:24',
@@ -29,7 +29,7 @@ export default function DocumentsPage() {
       },
       {
         id: 3675,
-        title: 'แบบยืนยันการเบิกเงิน',
+        title: 'แบบฟอร์มข้อมูลผู้เช่า',
         semester: '1 / 2568',
         submitDate: '10-06-2568 10:24:54',
         reviewDate: '18-06-2568 10:45:08',
@@ -37,7 +37,7 @@ export default function DocumentsPage() {
       },
       {
         id: 6352,
-        title: 'แบบยืนยันการเบิกเงิน',
+        title: 'คำร้องขอต่อสัญญาเช่า',
         semester: '2 / 2568',
         submitDate: '11-09-2568 12:52:26',
         reviewDate: '26-09-2568 10:40:29',
@@ -85,10 +85,7 @@ export default function DocumentsPage() {
       <main style={{padding: '2rem 0'}}>
         <div style={{maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem'}}>
           <div style={{textAlign: 'center', background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', marginBottom: '2rem'}}>
-            <Link href="/dashboard" style={{display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f1f5f9', color: '#64748b', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.875rem', marginBottom: '1rem', textDecoration: 'none'}}>
-              <ArrowLeft size={18} />
-              กลับหน้าหลัก
-            </Link>
+
             <h1 style={{fontSize: '2rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.5rem'}}>เอกสารที่ส่งแล้ว</h1>
             <p style={{color: '#64748b'}}>ตรวจสอบสถานะเอกสารที่ส่งไปแล้ว</p>
           </div>

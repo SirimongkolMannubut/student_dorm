@@ -357,14 +357,7 @@ export default function DashboardPage() {
                     <FolderOpen size={14} />
                     <span>เอกสารผู้เช่า</span>
                   </div>
-                  <div className="menu-item sub">
-                    <Home size={14} />
-                    <span>ประวัติการย้ายเข้า-ออก</span>
-                  </div>
-                  <div className="menu-item sub">
-                    <Bell size={14} />
-                    <span>การแจ้งเตือน</span>
-                  </div>
+
                 </div>
               </div>
               
@@ -383,11 +376,19 @@ export default function DashboardPage() {
                     <FolderOpen size={14} />
                     <span>เอกสารที่ส่งแล้ว</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/submit-document';
+                  }}>
                     <Send size={14} />
                     <span>ส่งเอกสาร</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/download-document';
+                  }}>
                     <Download size={14} />
                     <span>ดาวน์โหลดเอกสาร</span>
                   </div>

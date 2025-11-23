@@ -70,12 +70,7 @@ export default function Header() {
                   <div className="menu-item sub">
                     <span>เอกสารผู้เช่า</span>
                   </div>
-                  <div className="menu-item sub">
-                    <span>ประวัติการย้ายเข้า-ออก</span>
-                  </div>
-                  <div className="menu-item sub">
-                    <span>การแจ้งเตือน</span>
-                  </div>
+
                 </div>
               </div>
               
@@ -91,10 +86,18 @@ export default function Header() {
                   }}>
                     <span>เอกสารที่ส่งแล้ว</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/submit-document';
+                  }}>
                     <span>ส่งเอกสาร</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/download-document';
+                  }}>
                     <span>ดาวน์โหลดเอกสาร</span>
                   </div>
                 </div>

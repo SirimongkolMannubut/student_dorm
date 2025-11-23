@@ -59,12 +59,20 @@ export default function AdminPage() {
             <h2>เมนูจัดการ</h2>
             <div className="admin-menu-grid">
               {menuItems.map((item, index) => {
-                const isStudentMenu = item.label === 'จัดการนักศึกษา';
-                const Component = isStudentMenu ? 'a' : 'button';
-                const props = isStudentMenu ? { href: '/admin/bookings' } : {};
+                const getHref = (label) => {
+                  switch(label) {
+                    case 'จัดการนักศึกษา': return '/admin/students';
+                    case 'จัดการห้องพัก': return '/admin/rooms';
+                    case 'จัดการการเงิน': return '/admin/finance';
+                    case 'จัดการซ่อมบำรุง': return '/admin/maintenance';
+                    case 'จัดการประกาศ': return '/admin/announcements';
+                    case 'รายงาน': return '/admin/reports';
+                    default: return '#';
+                  }
+                };
                 
                 return (
-                  <Component key={index} className="admin-menu-card" {...props}>
+                  <a key={index} className="admin-menu-card" href={getHref(item.label)}>
                     <div className="menu-icon" style={{ backgroundColor: item.color }}>
                       {item.icon}
                     </div>
@@ -72,7 +80,7 @@ export default function AdminPage() {
                       <h3>{item.label}</h3>
                       <p>{item.desc}</p>
                     </div>
-                  </Component>
+                  </a>
                 );
               })}
             </div>

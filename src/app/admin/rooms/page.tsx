@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Check, X, Eye } from 'lucide-react';
+import { ArrowLeft, Check, X, Eye, Download } from 'lucide-react';
 import Link from 'next/link';
 
-export default function AdminRoomsPage() {
+export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState([]);
+
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   useEffect(() => {
     fetchPayments();
@@ -13,93 +16,126 @@ export default function AdminRoomsPage() {
 
   const fetchPayments = async () => {
     try {
-      const response = await fetch('/api/payments');
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      console.log('Fetching payments with token:', token ? 'Yes' : 'No');
+      
+      const response = await fetch('/api/admin/payments', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+      
       if (response.ok) {
-        const data = await response.json();
-        setPayments(data.payments || []);
+        const formattedPayments = (data.payments || []).map((p: any) => ({
+          ...p,
+          id: p._id || p.id,
+          studentName: p.studentName || 'ไม่ระบุ',
+          studentId: p.studentId || p.userId || 'ไม่ระบุ',
+          roomNumber: p.roomNumber || 'ไม่ระบุ',
+          amount: p.amount || 0,
+          paymentType: p.paymentType || 'ค่าเช่า',
+          uploadDate: p.uploadDate || new Date(p.createdAt).toLocaleDateString('th-TH')
+        }));
+        console.log('Formatted payments:', formattedPayments);
+        setPayments(formattedPayments);
       } else {
-        // Mock data fallback
-        setPayments([
-          {
-            id: 1,
-            studentName: 'สมชาย ใจดี',
-            studentId: '62010001',
-            roomNumber: 'A101',
-            amount: 3000,
-            paymentType: 'ค่าเช่าและค่ามัดจำ',
-            slipUrl: 'uploads/slip1.jpg',
-            status: 'pending',
-            uploadDate: '15/01/2567'
-          }
-        ]);
+        console.error('API error:', data);
       }
     } catch (error) {
       console.error('Error fetching payments:', error);
-      setPayments([
-        {
-          id: 1,
-          studentName: 'สมชาย ใจดี',
-          studentId: '62010001',
-          roomNumber: 'A101',
-          amount: 3000,
-          paymentType: 'ค่าเช่าและค่ามัดจำ',
-          slipUrl: 'uploads/slip1.jpg',
-          status: 'pending',
-          uploadDate: '15/01/2567'
-        }
-      ]);
     }
   };
 
-  const updatePaymentStatus = async (paymentId: number, status: 'approved' | 'rejected') => {
+  const handleApprove = async (paymentId: number) => {
     try {
-      const cookies = document.cookie.split(';');
-      const tokenCookie = cookies.find(c => c.trim().startsWith('token='));
-      const token = tokenCookie?.split('=')[1];
-
+      console.log('Approving payment ID:', paymentId);
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      
       const response = await fetch('/api/admin/payments', {
         method: 'PUT',
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ paymentId, status })
+        body: JSON.stringify({ paymentId, status: 'approved' })
       });
-
+      
+      const result = await response.json();
+      console.log('Approve response:', result);
+      
       if (response.ok) {
-        setPayments(prev => 
-          prev.map(payment => 
-            payment.id === paymentId 
-              ? { ...payment, status }
-              : payment
-          )
-        );
-        alert(`${status === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ'}การชำระเงินสำเร็จ!\n\nระบบจะส่งการแจ้งเตือนให้นักศึกษาทันที`);
+        setPayments(prev => prev.map(payment => 
+          payment.id === paymentId 
+            ? { ...payment, status: 'approved' }
+            : payment
+        ));
+        
+        alert('อนุมัติการชำระเงินสำเร็จ!\nระบบจะส่งการแจ้งเตือนให้นักศึกษาทันที');
+        setSelectedPayment(null);
+        fetchPayments();
       } else {
-        const text = await response.text();
-        try {
-          const error = JSON.parse(text);
-          alert(error.error || 'ไม่สามารถอัปเดตสถานะได้');
-        } catch {
-          alert('ไม่สามารถอัปเดตสถานะได้');
-        }
+        alert('เกิดข้อผิดพลาด: ' + (result.error || 'ไม่ทราบสาเหตุ'));
       }
     } catch (error) {
-      console.error('Update error:', error);
-      alert('เกิดข้อผิดพลาดในการอัปเดต');
+      console.error('Error approving payment:', error);
+      alert('เกิดข้อผิดพลาดในการอนุมัติ: ' + error.message);
+    }
+  };
+
+  const handleReject = async (paymentId: number) => {
+    if (!rejectReason.trim()) {
+      alert('กรุณาระบุเหตุผลการปฏิเสธ');
+      return;
+    }
+
+    try {
+      console.log('Rejecting payment ID:', paymentId, 'Reason:', rejectReason);
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      
+      const response = await fetch('/api/admin/payments', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ paymentId, status: 'rejected', rejectReason })
+      });
+      
+      const result = await response.json();
+      console.log('Reject response:', result);
+      
+      if (response.ok) {
+        setPayments(prev => prev.map(payment => 
+          payment.id === paymentId 
+            ? { ...payment, status: 'rejected', rejectReason }
+            : payment
+        ));
+        
+        alert('ปฏิเสธการชำระเงินแล้ว!\nระบบจะส่งแจ้งให้นักศึกษาแก้ไข');
+        setSelectedPayment(null);
+        setRejectReason('');
+        fetchPayments();
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + (result.error || 'ไม่ทราบสาเหตุ'));
+      }
+    } catch (error) {
+      console.error('Error rejecting payment:', error);
+      alert('เกิดข้อผิดพลาดในการปฏิเสธ: ' + error.message);
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <span style={{ background: '#fbbf24', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600' }}>รอตรวจสอบ</span>;
+        return <span className="status-badge pending">รอตรวจสอบ</span>;
       case 'approved':
-        return <span style={{ background: '#10b981', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600' }}>อนุมัติแล้ว</span>;
+        return <span className="status-badge approved">อนุมัติแล้ว</span>;
       case 'rejected':
-        return <span style={{ background: '#ef4444', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600' }}>ปฏิเสธ</span>;
+        return <span className="status-badge rejected">ปฏิเสธ</span>;
       default:
-        return <span style={{ background: '#6b7280', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600' }}>{status}</span>;
+        return <span className="status-badge">{status}</span>;
     }
   };
 
@@ -142,6 +178,34 @@ export default function AdminRoomsPage() {
           }}>
             <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.5rem' }}>ตรวจสอบการชำระเงิน</h1>
             <p style={{ color: '#64748b', fontSize: '1.1rem' }}>อนุมัติหรือปฏิเสธการชำระเงินของนักศึกษา</p>
+            <button
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+              onClick={async () => {
+                if (confirm('คุณต้องการลบข้อมูลทั้งหมดหรือไม่?')) {
+                  try {
+                    const response = await fetch('/api/payments/clear', { method: 'DELETE' });
+                    if (response.ok) {
+                      alert('ลบข้อมูลสำเร็จ!');
+                      fetchPayments();
+                    }
+                  } catch (error) {
+                    alert('เกิดข้อผิดพลาด');
+                  }
+                }
+              }}
+            >
+              ลบข้อมูลทั้งหมด
+            </button>
           </div>
 
           <div style={{
@@ -178,15 +242,15 @@ export default function AdminRoomsPage() {
                 alignItems: 'center'
               }}>
                 <div>
-                  <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>{payment.studentName}</div>
-                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{payment.studentId}</div>
+                  <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>{payment.studentName || 'ไม่ระบุ'}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{payment.studentId || payment.userId || 'ไม่ระบุ'}</div>
                 </div>
-                <span style={{ fontWeight: '500', color: '#1e293b' }}>{payment.roomNumber}</span>
+                <span style={{ fontWeight: '500', color: '#1e293b' }}>{payment.roomNumber || 'ไม่ระบุ'}</span>
                 <div>
-                  <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.1rem' }}>{payment.amount.toLocaleString()} ฿</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{payment.paymentType}</div>
+                  <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.1rem' }}>{(payment.amount || 0).toLocaleString()} ฿</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{payment.paymentType || 'ไม่ระบุ'}</div>
                 </div>
-                <span style={{ color: '#64748b' }}>{payment.uploadDate}</span>
+                <span style={{ color: '#64748b' }}>{payment.uploadDate || new Date(payment.createdAt).toLocaleDateString('th-TH')}</span>
                 <div>{getStatusBadge(payment.status)}</div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button 
@@ -203,6 +267,7 @@ export default function AdminRoomsPage() {
                       fontWeight: '500',
                       cursor: 'pointer'
                     }}
+                    onClick={() => setSelectedPayment(payment)}
                   >
                     <Eye size={14} />
                     ดูสลิป
@@ -210,7 +275,6 @@ export default function AdminRoomsPage() {
                   {payment.status === 'pending' && (
                     <>
                       <button 
-                        onClick={() => updatePaymentStatus(payment.id, 'approved')}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -224,12 +288,12 @@ export default function AdminRoomsPage() {
                           fontWeight: '500',
                           cursor: 'pointer'
                         }}
+                        onClick={() => handleApprove(payment._id || payment.id)}
                       >
                         <Check size={14} />
                         อนุมัติ
                       </button>
                       <button 
-                        onClick={() => updatePaymentStatus(payment.id, 'rejected')}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -243,6 +307,7 @@ export default function AdminRoomsPage() {
                           fontWeight: '500',
                           cursor: 'pointer'
                         }}
+                        onClick={() => { setSelectedPayment(payment); setRejectReason(''); }}
                       >
                         <X size={14} />
                         ปฏิเสธ

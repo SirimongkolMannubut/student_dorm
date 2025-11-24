@@ -14,7 +14,7 @@ const adminStats = [
 
 const menuItems = [
   { icon: <Users size={24} />, label: 'จัดการนักศึกษา', desc: 'ดูข้อมูล อนุมัติ ปฏิเสธ', color: '#3b82f6' },
-  { icon: <Building size={24} />, label: 'จัดการห้องพัก', desc: 'สถานะห้อง การจอง', color: '#10b981' },
+  { icon: <CreditCard size={24} />, label: 'ตรวจสอบการชำระเงิน', desc: 'อนุมัติ ปฏิเสธการชำระเงิน', color: '#f59e0b' },
   { icon: <CreditCard size={24} />, label: 'จัดการการเงิน', desc: 'แจ้งค่าไฟค่าน้ำ ตรวจสอบการชำระ', color: '#f59e0b' },
   { icon: <Wrench size={24} />, label: 'จัดการซ่อมบำรุง', desc: 'รายการแจ้งซ่อม', color: '#ef4444' },
   { icon: <FileText size={24} />, label: 'จัดการประกาศ', desc: 'เพิ่ม แก้ไข ลบประกาศ', color: '#8b5cf6' },
@@ -63,7 +63,7 @@ export default function AdminPage() {
                 const getHref = (label) => {
                   switch(label) {
                     case 'จัดการนักศึกษา': return '/admin/students';
-                    case 'จัดการห้องพัก': return '/admin/rooms';
+                    case 'ตรวจสอบการชำระเงิน': return '/admin/payments';
                     case 'จัดการการเงิน': return '/admin/utilities';
                     case 'จัดการซ่อมบำรุง': return '/admin/maintenance';
                     case 'จัดการประกาศ': return '/admin/announcements';

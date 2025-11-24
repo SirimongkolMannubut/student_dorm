@@ -35,10 +35,18 @@ export default function PaymentHistoryPage() {
 
         if (response.ok) {
           const userData = await response.json();
+          
+          // ดึงข้อมูล booking ที่ approved
+          const bookingsResponse = await fetch('/api/bookings', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const bookingsData = await bookingsResponse.json();
+          const approvedBooking = bookingsData.bookings?.find((b: any) => b.status === 'approved');
+          
           const userInfo = {
             fullName: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
             studentId: userData.studentId || '',
-            assignedRoom: 'A-301'
+            assignedRoom: approvedBooking?.roomId || '-'
           };
           setUser(userInfo);
           await loadPaymentHistory(userData.studentId);

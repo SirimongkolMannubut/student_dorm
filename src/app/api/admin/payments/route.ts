@@ -22,6 +22,21 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'ไม่พบข้อมูลการชำระเงิน' }, { status: 404 });
     }
     
+    // ถ้าอนุมัติ ให้อัปเดต booking
+    if (status === 'approved' && updatedPayment.bookingId) {
+      try {
+        const booking = await Booking.findByIdAndUpdate(
+          updatedPayment.bookingId,
+          { status: 'approved', updatedAt: new Date() }
+        );
+        if (booking) {
+          console.log('Updated booking:', updatedPayment.bookingId, 'to approved');
+        }
+      } catch (bookingError) {
+        console.error('Error updating booking:', bookingError);
+      }
+    }
+    
     console.log('Updated payment:', updatedPayment);
     return NextResponse.json({ 
       success: true, 

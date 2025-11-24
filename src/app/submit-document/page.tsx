@@ -11,6 +11,9 @@ export default function SubmitDocumentPage() {
     description: ''
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -21,18 +24,43 @@ export default function SubmitDocumentPage() {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     
     if (!formData.documentType || !formData.semester || selectedFiles.length === 0) {
-      alert('กรุณากรอกข้อมูลและเลือกไฟล์ให้ครบถ้วน');
+      setError('กรุณากรอกข้อมูลและเลือกไฟล์ให้ครบถ้วน');
       return;
     }
 
-    alert('ส่งเอกสารเรียบร้อยแล้ว\nระบบจะแจ้งผลการตรวจสอบภายใน 3-5 วันทำการ');
-    
-    setFormData({ documentType: '', semester: '', description: '' });
-    setSelectedFiles([]);
+    setLoading(true);
+    try {
+      const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+      
+      const data = new FormData();
+      data.append('documentType', formData.documentType);
+      data.append('semester', formData.semester);
+      data.append('description', formData.description);
+      selectedFiles.forEach(file => data.append('files', file));
+
+      const response = await fetch('/api/documents/submit', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: data
+      });
+
+      if (response.ok) {
+        setSuccess(true);
+        setFormData({ documentType: '', semester: '', description: '' });
+        setSelectedFiles([]);
+      } else {
+        setError('เกิดข้อผิดพลาดในการส่งเอกสาร');
+      }
+    } catch (err) {
+      setError('เกิดข้อผิดพลาดในการส่งเอกสาร');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -138,13 +166,33 @@ export default function SubmitDocumentPage() {
                 </div>
               )}
 
+              {error && (
+                <div style={{padding: '1rem', background: '#fee2e2', border: '1px solid #ef4444', borderRadius: '8px', color: '#991b1b', marginBottom: '1rem'}}>
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div style={{padding: '1.5rem', background: '#d1fae5', border: '2px solid #10b981', borderRadius: '8px', marginBottom: '1rem'}}>
+                  <h3 style={{color: '#065f46', marginBottom: '0.5rem'}}>✓ ส่งเอกสารสำเร็จ!</h3>
+                  <p style={{color: '#047857', marginBottom: '1rem'}}>รอแอดมินตรวจสอบที่หน้าจัดการนักศึกษา</p>
+                  <button
+                    onClick={() => setSuccess(false)}
+                    style={{background: '#10b981', color: 'white', padding: '0.5rem 1rem', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600'}}
+                  >
+                    ส่งเอกสารเพิ่ม
+                  </button>
+                </div>
+              )}
+
               <div style={{textAlign: 'center'}}>
                 <button
                   type="submit"
-                  style={{display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#10b981', color: 'white', padding: '1rem 2rem', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '1rem', cursor: 'pointer'}}
+                  disabled={loading || success}
+                  style={{display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: loading || success ? '#94a3b8' : '#10b981', color: 'white', padding: '1rem 2rem', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '1rem', cursor: loading || success ? 'not-allowed' : 'pointer'}}
                 >
                   <Send size={20} />
-                  ส่งเอกสาร
+                  {loading ? 'กำลังส่ง...' : 'ส่งเอกสาร'}
                 </button>
               </div>
             </form>

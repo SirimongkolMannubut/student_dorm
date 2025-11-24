@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
 
 const SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
-
-// Initialize global storage
-if (!global.registeredUsers) {
-  global.registeredUsers = [];
-}
 
 export async function POST(req: Request) {
   try {
@@ -59,12 +56,21 @@ export async function POST(req: Request) {
       return res;
     }
     
-    // Find user in registered users
-    const user = global.registeredUsers.find((u: any) => 
-      u.email === identifier || u.studentId === identifier
-    );
+    // Find user in MongoDB
+    await connectDB();
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { studentId: identifier }]
+    });
     
-    if (!user || user.password !== password) {
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
@@ -74,8 +80,8 @@ export async function POST(req: Request) {
     // Generate JWT token
     const token = jwt.sign(
       { 
-        userId: user.id,
-        sub: user.id, 
+        userId: user._id.toString(),
+        sub: user._id.toString(), 
         email: user.email, 
         role: user.role, 
         name: `${user.firstName} ${user.lastName}`, 
@@ -96,7 +102,7 @@ export async function POST(req: Request) {
     const res = NextResponse.json({ 
       ok: true, 
       user: { 
-        id: user.id, 
+        id: user._id.toString(), 
         name: `${user.firstName} ${user.lastName}`, 
         email: user.email,
         role: user.role,

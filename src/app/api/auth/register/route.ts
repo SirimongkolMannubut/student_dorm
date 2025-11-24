@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 if (!global.registeredUsers) {
   global.registeredUsers = [];
@@ -18,6 +19,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'อีเมลหรือรหัสนักศึกษานี้ถูกใช้แล้ว' }, { status: 400 });
     }
     
+    const hashedPassword = await bcrypt.hash(password, 12);
+    
     const user = await User.create({
       studentId,
       firstName,
@@ -28,7 +31,7 @@ export async function POST(request: NextRequest) {
       year,
       major,
       faculty,
-      password,
+      password: hashedPassword,
       role: "student",
       status: "pending"
     });

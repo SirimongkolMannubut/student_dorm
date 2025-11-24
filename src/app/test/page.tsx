@@ -121,6 +121,43 @@ export default function TestPage() {
     }
   };
 
+  const testStudentLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: '62010001',
+          password: '12345678'
+        })
+      });
+      
+      const data = await response.json();
+      setResult('Student Login: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Student Login Error: ' + error.message);
+    }
+  };
+
+  const testLoginCustom = async () => {
+    const studentId = prompt('รหัสนักศึกษา:');
+    const password = prompt('รหัสผ่าน:');
+    if (!studentId || !password) return;
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: studentId, password })
+      });
+      
+      const data = await response.json();
+      setResult('Login: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Login Error: ' + error.message);
+    }
+  };
+
   const testAdminLogin = async () => {
     try {
       const response = await fetch('/api/auth/login', {
@@ -196,6 +233,67 @@ export default function TestPage() {
     }
   };
 
+  const testDocumentSubmit = async () => {
+    try {
+      const cookies = document.cookie.split(';');
+      const tokenCookie = cookies.find(c => c.trim().startsWith('token='));
+      const token = tokenCookie?.split('=')[1];
+
+      const formData = new FormData();
+      formData.append('documentType', 'คำร้องขอเข้าพักหอพัก');
+      formData.append('semester', '1 / 2568');
+      formData.append('description', 'ทดสอบส่งเอกสาร');
+      
+      const mockFile = new File(['mock doc'], 'document.pdf', { type: 'application/pdf' });
+      formData.append('files', mockFile);
+
+      const response = await fetch('/api/documents/submit', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      
+      const data = await response.json();
+      setResult('Document Submit: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Document Submit Error: ' + error.message);
+    }
+  };
+
+  const testGetStudents = async () => {
+    try {
+      const response = await fetch('/api/students');
+      const data = await response.json();
+      setResult('Get Students: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Get Students Error: ' + error.message);
+    }
+  };
+
+  const deleteTestUsers = async () => {
+    if (!confirm('ลบ user ทดสอบ 2 คน?')) return;
+    
+    try {
+      await fetch('/api/students/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: '6924ce1a05afd1debdb355ed' })
+      });
+      
+      await fetch('/api/students/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: '69233a5f3961b42ec08055a9' })
+      });
+      
+      setResult('ลบสำเร็จ');
+    } catch (error) {
+      setResult('Delete Error: ' + error.message);
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <h1>Test Page</h1>
@@ -220,6 +318,14 @@ export default function TestPage() {
         Test Payment Upload
       </button>
       
+      <button onClick={testStudentLogin} style={{ margin: '10px', padding: '10px', background: '#10b981' }}>
+        Test Student Login (62010001)
+      </button>
+      
+      <button onClick={testLoginCustom} style={{ margin: '10px', padding: '10px', background: '#8b5cf6' }}>
+        Login ศิริมงคล (กรอกรหัส)
+      </button>
+      
       <button onClick={testAdminLogin} style={{ margin: '10px', padding: '10px', background: '#ff9800' }}>
         Test Admin Login
       </button>
@@ -234,6 +340,18 @@ export default function TestPage() {
       
       <button onClick={clearPayments} style={{ margin: '10px', padding: '10px', background: '#ef4444' }}>
         Clear Payments
+      </button>
+      
+      <button onClick={testDocumentSubmit} style={{ margin: '10px', padding: '10px', background: '#10b981' }}>
+        Test Document Submit
+      </button>
+      
+      <button onClick={testGetStudents} style={{ margin: '10px', padding: '10px', background: '#3b82f6' }}>
+        Test Get Students
+      </button>
+      
+      <button onClick={deleteTestUsers} style={{ margin: '10px', padding: '10px', background: '#ef4444' }}>
+        ลบ User ทดสอบ
       </button>
       
       <pre style={{ background: '#f5f5f5', padding: '10px', marginTop: '20px' }}>

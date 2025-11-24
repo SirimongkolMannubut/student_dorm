@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/mongodb';
 import User from '../../../models/User';
+import Document from '../../../models/Document';
+import GeneralDocument from '../../../models/GeneralDocument';
 
 export async function GET() {
   try {
@@ -11,7 +13,19 @@ export async function GET() {
       .select('-password')
       .sort({ createdAt: -1 });
     
-    return NextResponse.json(students);
+    const studentsWithDocs = await Promise.all(
+      students.map(async (student) => {
+        const doc = await Document.findOne({ userId: student._id });
+        const generalDocs = await GeneralDocument.find({ userId: student._id }).sort({ createdAt: -1 });
+        return {
+          ...student.toObject(),
+          document: doc,
+          generalDocuments: generalDocs
+        };
+      })
+    );
+    
+    return NextResponse.json(studentsWithDocs);
   } catch (error) {
     console.error('Get students error:', error);
     return NextResponse.json(

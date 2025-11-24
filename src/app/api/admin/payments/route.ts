@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Payment from '@/models/Payment';
+import Booking from '@/models/Booking';
+import User from '@/models/User';
 import { verify } from 'jsonwebtoken';
 
 export async function PUT(request: NextRequest) {
@@ -37,7 +39,6 @@ export async function GET(request: NextRequest) {
     
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     
-    // ถ้ามี token ให้ตรวจสอบ role
     if (token) {
       try {
         const decoded: any = verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
@@ -52,7 +53,34 @@ export async function GET(request: NextRequest) {
     const payments = await Payment.find().sort({ createdAt: -1 });
     console.log('Found payments:', payments.length);
     
-    return NextResponse.json({ payments });
+    const enrichedPayments = await Promise.all(payments.map(async (payment) => {
+      try {
+        let user = await User.findOne({ studentId: payment.userId });
+        if (!user) {
+          user = await User.findById(payment.userId).catch(() => null);
+        }
+        const booking = payment.bookingId ? await Booking.findById(payment.bookingId).catch(() => null) : null;
+        
+        console.log('Payment userId:', payment.userId, 'Found user:', user ? `${user.firstName} ${user.lastName}` : 'null');
+        
+        return {
+          ...payment.toObject(),
+          studentName: user ? `${user.firstName} ${user.lastName}` : 'ไม่ระบุ',
+          studentId: user?.studentId || payment.userId,
+          roomNumber: booking?.roomId || 'ไม่ระบุ'
+        };
+      } catch (err) {
+        console.error('Error enriching payment:', err);
+        return {
+          ...payment.toObject(),
+          studentName: 'ไม่ระบุ',
+          studentId: payment.userId,
+          roomNumber: 'ไม่ระบุ'
+        };
+      }
+    }));
+    
+    return NextResponse.json({ payments: enrichedPayments });
   } catch (error: any) {
     console.error('Get admin payments error:', error);
     return NextResponse.json({ error: 'ดึงข้อมูลล้มเหลว: ' + error.message }, { status: 500 });

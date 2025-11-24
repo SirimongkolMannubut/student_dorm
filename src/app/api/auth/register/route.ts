@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
+import jwt from 'jsonwebtoken';
 
-// Simple in-memory storage
 if (!global.registeredUsers) {
   global.registeredUsers = [];
 }
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+    
     const { email, password, firstName, lastName, phone, studentId, gender, year, major, faculty } = await request.json();
     
-    // สร้าง user object และเก็บไว้ใน memory
-    const user = {
-      id: Date.now().toString(),
+    const existingUser = await User.findOne({ $or: [{ email }, { studentId }] });
+    if (existingUser) {
+      return NextResponse.json({ error: 'อีเมลหรือรหัสนักศึกษานี้ถูกใช้แล้ว' }, { status: 400 });
+    }
+    
+    const user = await User.create({
       studentId,
       firstName,
       lastName,
@@ -21,22 +28,33 @@ export async function POST(request: NextRequest) {
       year,
       major,
       faculty,
-      password, // เก็บ password ไว้สำหรับ login
+      password,
       role: "student",
       status: "pending"
-    };
+    });
     
-    // เก็บข้อมูลผู้ใช้ที่สมัคร
-    global.registeredUsers.push(user);
+    global.registeredUsers.push({
+      id: user._id.toString(),
+      studentId,
+      firstName,
+      lastName,
+      email,
+      phone,
+      gender,
+      year,
+      major,
+      faculty,
+      password,
+      role: "student",
+      status: "pending"
+    });
     
-    console.log('User created (mock):', user.id);
+    console.log('User created:', user._id);
     
-    // Generate JWT token
-    const jwt = require('jsonwebtoken');
     const token = jwt.sign(
       { 
-        userId: user.id,
-        sub: user.id, 
+        userId: user._id.toString(),
+        sub: user._id.toString(), 
         email: user.email, 
         role: user.role, 
         name: `${user.firstName} ${user.lastName}`, 
@@ -72,5 +90,5 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({ message: 'Register API working - No Database' });
+  return NextResponse.json({ message: 'Register API working' });
 }

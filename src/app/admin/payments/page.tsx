@@ -244,8 +244,7 @@ export default function AdminPaymentsPage() {
                 ':hover': { background: '#f8fafc' }
               }}>
                 <div>
-                  <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>{payment.studentName || 'ไม่ระบุ'}</div>
-                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{payment.studentId || payment.userId || 'ไม่ระบุ'}</div>
+                  <div style={{ fontWeight: '600', color: '#1e293b' }}>{payment.studentId || payment.userId || 'ไม่ระบุ'}</div>
                 </div>
                 <span style={{ fontWeight: '500', color: '#1e293b' }}>{payment.roomNumber || 'ไม่ระบุ'}</span>
                 <div>

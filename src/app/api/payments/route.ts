@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     await writeFile(filepath, buffer);
 
     const payment = await Payment.create({
-      userId: decoded.userId || decoded.sub,
+      userId: decoded.studentId || decoded.userId || decoded.sub,
       bookingId: bookingId as string,
       amount: parseInt(amount as string),
       slipUrl: `/uploads/${filename}`,

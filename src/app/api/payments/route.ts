@@ -1,27 +1,51 @@
-import { NextResponse } from 'next/server';
-import connectDB from '../../../lib/mongodb';
-import Payment from '../../../models/Payment';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+// In-memory storage for payments (in production, use database)
+if (!global.adminPayments) {
+  global.adminPayments = [];
+}
+
+export async function POST(request: NextRequest) {
   try {
-    await connectDB();
-    const payments = await Payment.find({})
-      .populate('user', 'firstName lastName studentId')
-      .populate('room', 'number building')
-      .sort({ createdAt: -1 });
-    return NextResponse.json(payments);
+    const paymentData = await request.json();
+    
+    const newPayment = {
+      id: Date.now(),
+      ...paymentData,
+      status: 'pending',
+      uploadDate: new Date().toLocaleString('th-TH'),
+      reviewDate: null
+    };
+    
+    global.adminPayments.push(newPayment);
+    
+    console.log('New payment submitted:', newPayment);
+    
+    return NextResponse.json(
+      { message: 'Payment submitted successfully', paymentId: newPayment.id },
+      { status: 201 }
+    );
+    
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Payment submission error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request: Request) {
+export async function GET() {
   try {
-    await connectDB();
-    const data = await request.json();
-    const payment = await Payment.create(data);
-    return NextResponse.json(payment, { status: 201 });
+    return NextResponse.json(
+      { payments: global.adminPayments || [] },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Get payments error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

@@ -14,6 +14,7 @@ interface PaymentRecord {
   dueDate: string;
   paidDate?: string;
   method: string;
+  slipUploaded?: boolean;
 }
 
 export default function PaymentHistoryPage() {
@@ -21,67 +22,130 @@ export default function PaymentHistoryPage() {
   const [paymentHistory, setPaymentHistory] = useState<PaymentRecord[]>([]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      loadPaymentHistory(parsedUser.studentId);
-    }
+    const fetchUserAndPayments = async () => {
+      try {
+        const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+        if (!token) return;
+
+        const response = await fetch('/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          const userInfo = {
+            fullName: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+            studentId: userData.studentId || '',
+            assignedRoom: 'A-301'
+          };
+          setUser(userInfo);
+          await loadPaymentHistory(userData.studentId);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        // Set default user to prevent loading state
+        setUser({
+          fullName: 'ผู้ใช้',
+          studentId: '62010001',
+          assignedRoom: 'A-301'
+        });
+        loadPaymentHistory('62010001');
+      }
+    };
+
+    fetchUserAndPayments();
   }, []);
 
-  const loadPaymentHistory = (studentId: string) => {
-    // ตรวจสอบการจองห้องที่รอชำระ
-    const pendingBooking = localStorage.getItem('pendingBooking');
-    
-    const mockHistory: PaymentRecord[] = [
-      {
-        id: 1,
-        month: 'มกราคม 2025',
-        amount: 3950,
-        type: 'ค่ามัดจำ + ค่าเช่าเดือนแรก',
-        status: 'paid',
-        dueDate: '2025-01-05',
-        paidDate: '2025-01-03',
-        method: 'PromptPay'
-      },
-      {
-        id: 2,
-        month: 'กุมภาพันธ์ 2025',
-        amount: 4000,
-        type: 'ค่าเช่า + ค่าน้ำ + ค่าไฟ + อินเทอร์เน็ต',
-        status: 'paid',
-        dueDate: '2025-02-05',
-        paidDate: '2025-02-04',
-        method: 'PromptPay'
-      },
-      {
-        id: 3,
-        month: 'มีนาคม 2025',
-        amount: 3850,
-        type: 'ค่าเช่า + ค่าน้ำ + ค่าไฟ + อินเทอร์เน็ต',
-        status: 'pending',
-        dueDate: '2025-03-05',
-        method: '-'
+  const loadPaymentHistory = async (studentId: string) => {
+    try {
+      // ดึงข้อมูลจาก API payments (สลิปที่อัปโหลดแล้ว)
+      const paymentsResponse = await fetch('/api/payments');
+      const paymentsData = await paymentsResponse.json();
+      const userPayments = paymentsData.payments?.filter((p: any) => p.studentId === studentId) || [];
+      
+      // ดึงข้อมูลจาก API payment-records (รายการที่ยังไม่ได้อัปโหลดสลิป)
+      const recordsResponse = await fetch(`/api/payment-records?studentId=${studentId}`);
+      const recordsData = await recordsResponse.json();
+      const userRecords = recordsData.records || [];
+      
+      // แปลงข้อมูลจาก payments API
+      const apiPayments: PaymentRecord[] = userPayments.map((payment: any) => ({
+        id: payment.id,
+        month: payment.month || 'มีนาคม 2025',
+        amount: payment.amount,
+        type: payment.paymentType,
+        status: payment.status === 'approved' ? 'paid' : payment.status === 'rejected' ? 'overdue' : 'pending',
+        dueDate: payment.dueDate,
+        paidDate: payment.status === 'approved' ? payment.uploadTime : undefined,
+        method: payment.status === 'approved' ? 'PromptPay' : '-',
+        slipUploaded: true
+      }));
+      
+      // แปลงข้อมูลจาก payment-records API
+      const recordPayments: PaymentRecord[] = userRecords.map((record: any) => ({
+        id: record.id,
+        month: record.month,
+        amount: record.amount,
+        type: record.type,
+        status: record.status,
+        dueDate: record.dueDate,
+        paidDate: record.paidDate,
+        method: record.method,
+        slipUploaded: record.slipUploaded
+      }));
+      
+      // Mock data เก่า (เฉพาะของ studentId 62010001)
+      const mockHistory: PaymentRecord[] = studentId === '62010001' ? [
+        {
+          id: 1001,
+          month: 'มกราคม 2025',
+          amount: 3950,
+          type: 'ค่ามัดจำ + ค่าเช่าเดือนแรก',
+          status: 'paid',
+          dueDate: '2025-01-05',
+          paidDate: '2025-01-03',
+          method: 'PromptPay',
+          slipUploaded: true
+        },
+        {
+          id: 1002,
+          month: 'กุมภาพันธ์ 2025',
+          amount: 4000,
+          type: 'ค่าเช่า + ค่าน้ำ + ค่าไฟ + อินเทอร์เน็ต',
+          status: 'paid',
+          dueDate: '2025-02-05',
+          paidDate: '2025-02-04',
+          method: 'PromptPay',
+          slipUploaded: true
+        }
+      ] : [];
+      
+      // เพิ่มรายการใหม่หากไม่มีข้อมูลจาก API
+      if (apiPayments.length === 0 && recordPayments.length === 0 && mockHistory.length > 0) {
+        // เพิ่มรายการใหม่ที่ยังไม่ได้ชำระ
+        mockHistory.push({
+          id: 1003,
+          month: 'มีนาคม 2025',
+          amount: 3850,
+          type: 'ค่าเช่า + ค่าน้ำ + ค่าไฟ + อินเทอร์เน็ต',
+          status: 'pending',
+          dueDate: '2025-03-05',
+          method: '-',
+          slipUploaded: false
+        });
       }
-    ];
-    
-    // เพิ่มการจองห้องที่รอชำระ
-    if (pendingBooking) {
-      const booking = JSON.parse(pendingBooking);
-      mockHistory.unshift({
-        id: 0,
-        month: 'การจองห้องใหม่',
-        amount: booking.totalAmount,
-        type: `ห้อง ${booking.roomNumber} - ${booking.roomType} (ค่ามัดจำ + ค่าเช่าเดือนแรก)`,
-        status: 'pending',
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        method: '-'
-      });
+      
+      // รวมข้อมูลทั้งหมด
+      const allPayments = [...apiPayments, ...recordPayments, ...mockHistory]
+        .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+      
+      setPaymentHistory(allPayments);
+    } catch (error) {
+      console.error('Error loading payment history:', error);
+      setPaymentHistory([]);
     }
-    
-    setPaymentHistory(mockHistory);
   };
 
   const getStatusIcon = (status: string) => {
@@ -97,29 +161,27 @@ export default function PaymentHistoryPage() {
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'ชำระแล้ว';
-      case 'pending':
-        return 'รอชำระ';
-      case 'overdue':
-        return 'เกินกำหนด';
-      default:
-        return 'ไม่ทราบสถานะ';
+  const getStatusText = (status: string, slipUploaded: boolean) => {
+    if (status === 'paid') {
+      return 'ผ่าน';
+    } else if (status === 'overdue') {
+      return 'แก้ไข';
+    } else if (status === 'pending') {
+      return slipUploaded ? 'ดำเนินการ' : 'ชำระ';
     }
+    return 'ไม่ทราบสถานะ';
   };
 
   const getStatusClass = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-100 text-green-800';
+        return 'status-paid';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'status-pending';
       case 'overdue':
-        return 'bg-red-100 text-red-800';
+        return 'status-overdue';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'status-default';
     }
   };
 
@@ -138,10 +200,6 @@ export default function PaymentHistoryPage() {
       <main className="payment-history-main">
         <div className="payment-history-container">
           <div className="page-header">
-            <Link href="/dashboard" className="back-btn">
-              <ArrowLeft size={18} />
-              กลับหน้าหลัก
-            </Link>
             <h1>ประวัติการชำระเงิน</h1>
             <p>ดูประวัติการชำระค่าเช่าและค่าใช้จ่ายต่างๆ</p>
           </div>
@@ -228,18 +286,14 @@ export default function PaymentHistoryPage() {
                   <div className="status-cell">
                     <div className={`status-badge ${getStatusClass(payment.status)}`}>
                       {getStatusIcon(payment.status)}
-                      <span>{getStatusText(payment.status)}</span>
+                      <span>{getStatusText(payment.status, payment.slipUploaded)}</span>
                     </div>
-                    {payment.status === 'pending' && (
+                    {payment.status === 'pending' && !payment.slipUploaded && (
                       <button 
                         className="pay-btn"
                         onClick={() => {
-                          if (payment.id === 0) {
-                            window.location.href = '/payment';
-                          } else {
-                            localStorage.setItem('selectedPayment', JSON.stringify(payment));
-                            window.location.href = '/payment';
-                          }
+                          localStorage.setItem('selectedPayment', JSON.stringify(payment));
+                          window.location.href = '/payment';
                         }}
                       >
                         ชำระเงิน
@@ -257,18 +311,7 @@ export default function PaymentHistoryPage() {
             </div>
           </div>
 
-          <div className="payment-actions">
-            <Link href="/payment" className="pay-now-btn">
-              <CreditCard size={20} />
-              ชำระเงิน
-            </Link>
-            {paymentHistory.some(p => p.status === 'pending') && (
-              <div className="pending-notice">
-                <Clock size={16} />
-                <span>คุณมีรายการรอชำระ กรุณาชำระภายในกำหนด</span>
-              </div>
-            )}
-          </div>
+
         </div>
       </main>
 
@@ -554,6 +597,42 @@ export default function PaymentHistoryPage() {
           margin-top: 1rem;
           font-weight: 500;
           border: 1px solid #f59e0b;
+        }
+        
+        .status-paid {
+          background: #dcfce7 !important;
+          color: #166534 !important;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+        
+        .status-pending {
+          background: #fed7aa !important;
+          color: #9a3412 !important;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+        
+        .status-overdue {
+          background: #fecaca !important;
+          color: #991b1b !important;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+        
+        .status-default {
+          background: #f3f4f6 !important;
+          color: #374151 !important;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 600;
         }
 
         @media (max-width: 768px) {

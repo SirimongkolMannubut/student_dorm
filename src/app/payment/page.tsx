@@ -13,25 +13,63 @@ export default function PaymentPage() {
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const userData = localStorage.getItem('user');
-    const bookingData = localStorage.getItem('pendingBooking');
-    const paymentData = localStorage.getItem('selectedPayment');
-    
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-    
-    if (paymentData) {
-      setSelectedPayment(JSON.parse(paymentData));
-      localStorage.removeItem('selectedPayment');
-    } else if (bookingData) {
-      setPendingBooking(JSON.parse(bookingData));
-    } else {
-      alert('ไม่พบข้อมูลการชำระ\nกรุณาไปหน้าประวัติการชำระเงิน');
-      window.location.href = '/payment-history';
-    }
+    const fetchUserAndPaymentData = async () => {
+      try {
+        const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+        if (token) {
+          const response = await fetch('/api/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+            const userInfo = {
+              fullName: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+              studentId: userData.studentId || ''
+            };
+            setUser(userInfo);
+          }
+        }
+        
+        // Check for payment data in localStorage
+        const paymentData = localStorage.getItem('selectedPayment');
+        const bookingData = localStorage.getItem('pendingBooking');
+        
+        if (paymentData) {
+          setSelectedPayment(JSON.parse(paymentData));
+          localStorage.removeItem('selectedPayment');
+        } else if (bookingData) {
+          setPendingBooking(JSON.parse(bookingData));
+        } else {
+          // Set default payment for demo
+          setSelectedPayment({
+            id: 3,
+            month: 'มีนาคม 2025',
+            amount: 3850,
+            type: 'ค่าเช่า + ค่าน้ำ + ค่าไฟ + อินเทอร์เน็ต',
+            dueDate: '2025-03-05'
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        // Set default user and payment
+        setUser({
+          fullName: 'ผู้ใช้',
+          studentId: '62010001'
+        });
+        setSelectedPayment({
+          id: 3,
+          month: 'มีนาคม 2025',
+          amount: 3850,
+          type: 'ค่าเช่า + ค่าน้ำ + ค่าไฟ + อินเทอร์เน็ต',
+          dueDate: '2025-03-05'
+        });
+      }
+    };
+
+    fetchUserAndPaymentData();
   }, []);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,38 +100,80 @@ export default function PaymentPage() {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // ลบข้อมูลการจองที่รอชำระ
-      localStorage.removeItem('pendingBooking');
-      
-      // เพิ่มข้อมูลใน Admin Payments
-      const adminPayments = JSON.parse(localStorage.getItem('adminPayments') || '[]');
-      const newPayment = {
-        id: Date.now(),
+      const currentTime = new Date().toLocaleString('th-TH', {
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      // สร้างข้อมูลสำหรับส่งไป API
+      const paymentData = {
         studentName: user.fullName,
         studentId: user.studentId,
-        roomNumber: pendingBooking.roomNumber,
-        amount: pendingBooking.totalAmount,
+        roomNumber: pendingBooking?.roomNumber || 'A-301',
+        amount: pendingBooking?.totalAmount || selectedPayment?.amount || 3850,
         slipImage: `/uploads/slip_${user.studentId}_${Date.now()}.jpg`,
-        status: 'pending',
-        uploadDate: new Date().toLocaleString('th-TH'),
-        paymentType: `ห้อง ${pendingBooking.roomNumber} - ${pendingBooking.roomType}`,
-        dueDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+        paymentType: pendingBooking ? `ห้อง ${pendingBooking.roomNumber} - ${pendingBooking.roomType}` : selectedPayment?.type || 'ค่าเช่ารายเดือน',
+        dueDate: selectedPayment?.dueDate || new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
         bankAccount: 'PromptPay QR Code',
-        fileName: selectedFile.name
+        fileName: selectedFile.name,
+        month: selectedPayment?.month || 'มีนาคม 2025',
+        uploadTime: currentTime
       };
 
-      adminPayments.push(newPayment);
-      localStorage.setItem('adminPayments', JSON.stringify(adminPayments));
-
-      // อัปเดตสถานะผู้ใช้เป็นรอตรวจสอบการชำระเงิน
-      const updatedUser = { ...user, roomStatus: 'payment_pending' };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-
-      alert('ส่งสลิปการชำระเงินสำเร็จ!\n\nระบบจะตรวจสอบการชำระเงิน\nคุณจะได้รับการแจ้งเตือนเมื่อการตรวจสอบเสร็จสิ้น');
+      // ตรวจสอบว่ามีข้อมูลซ้ำหรือไม่
+      const checkResponse = await fetch('/api/payments');
+      const existingData = await checkResponse.json();
+      const isDuplicate = existingData.payments?.some((p: any) => 
+        p.studentId === user.studentId && 
+        p.amount === paymentData.amount &&
+        p.paymentType === paymentData.paymentType
+      );
       
-      window.location.href = '/payment-history';
+      if (isDuplicate) {
+        alert('คุณได้ส่งสลิปสำหรับรายการนี้แล้ว\nกรุณารอแอดมินตรวจสอบ');
+        window.location.href = '/payment-history';
+        return;
+      }
+
+      // ส่งข้อมูลไป API
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(paymentData)
+      });
+
+      if (response.ok) {
+        // อัปเดต payment record ถ้ามี selectedPayment
+        if (selectedPayment?.id) {
+          await fetch('/api/payment-records', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: selectedPayment.id,
+              slipUploaded: true
+            })
+          });
+        }
+        
+        // ลบข้อมูลที่ไม่จำเป็นอีกต่อไป
+        localStorage.removeItem('pendingBooking');
+        localStorage.removeItem('selectedPayment');
+        
+        alert(`ส่งสลิปการชำระเงินสำเร็จ!\n\nเวลาที่ส่ง: ${currentTime}\n\nรายการ: ${paymentData.paymentType}\nจำนวนเงิน: ${paymentData.amount.toLocaleString()} บาท\n\nกรุณารอแอดมินตรวจสอบการชำระเงิน\nระบบจะแจ้งเตือนเมื่อการตรวจสอบเสร็จสิ้น`);
+        
+        window.location.href = '/payment-history';
+      } else {
+        throw new Error('ไม่สามารถส่งข้อมูลได้');
+      }
 
     } catch (error) {
+      console.error('Upload error:', error);
       alert('เกิดข้อผิดพลาดในการอัปโหลด กรุณาลองใหม่อีกครั้ง');
     } finally {
       setUploading(false);

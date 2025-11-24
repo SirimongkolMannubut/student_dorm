@@ -5,73 +5,95 @@ import { ArrowLeft, Check, X, Eye, Download } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminPaymentsPage() {
-  const [payments, setPayments] = useState([
-    {
-      id: 1,
-      studentName: 'นายสมชาย ใจดี',
-      studentId: '62010001',
-      roomNumber: 'A301',
-      amount: 5950,
-      slipImage: '/slip1.jpg',
-      status: 'pending',
-      uploadDate: '2025-01-15 14:30',
-      paymentType: 'มัดจำ + เช่าเดือนแรก'
-    },
-    {
-      id: 2,
-      studentName: 'นางสาวสมหญิง รักดี',
-      studentId: '62010002',
-      roomNumber: 'B205',
-      amount: 5950,
-      slipImage: '/slip2.jpg',
-      status: 'approved',
-      uploadDate: '2025-01-14 16:45',
-      paymentType: 'มัดจำ + เช่าเดือนแรก'
-    },
-    {
-      id: 3,
-      studentName: 'นายวิชัย เก่งกาจ',
-      studentId: '62010003',
-      roomNumber: 'C102',
-      amount: 3500,
-      slipImage: '/slip3.jpg',
-      status: 'rejected',
-      uploadDate: '2025-01-13 10:15',
-      paymentType: 'ค่าเช่าประจำเดือน',
-      rejectReason: 'จำนวนเงินไม่ตรงกับที่ระบุ'
-    }
-  ]);
+  const [payments, setPayments] = useState([]);
 
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  const handleApprove = (paymentId: number) => {
-    setPayments(prev => prev.map(payment => 
-      payment.id === paymentId 
-        ? { ...payment, status: 'approved' }
-        : payment
-    ));
-    
-    // ส่งการแจ้งเตือนให้นักศึกษา
-    alert('อนุมัติการชำระเงินสำเร็จ!\nระบบจะส่งการแจ้งเตือนให้นักศึกษาทันที');
-    setSelectedPayment(null);
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
+    try {
+      const response = await fetch('/api/payments');
+      if (response.ok) {
+        const data = await response.json();
+        setPayments(data.payments || []);
+      }
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    }
   };
 
-  const handleReject = (paymentId: number) => {
+  const handleApprove = async (paymentId: number) => {
+    try {
+      console.log('Approving payment ID:', paymentId);
+      
+      const response = await fetch(`/api/payments/${paymentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' })
+      });
+      
+      const result = await response.json();
+      console.log('Approve response:', result);
+      
+      if (response.ok) {
+        setPayments(prev => prev.map(payment => 
+          payment.id === paymentId 
+            ? { ...payment, status: 'approved' }
+            : payment
+        ));
+        
+        alert('อนุมัติการชำระเงินสำเร็จ!\nระบบจะส่งการแจ้งเตือนให้นักศึกษาทันที');
+        setSelectedPayment(null);
+        fetchPayments(); // รีเฟรชข้อมูล
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + (result.error || 'ไม่ทราบสาเหตุ'));
+      }
+    } catch (error) {
+      console.error('Error approving payment:', error);
+      alert('เกิดข้อผิดพลาดในการอนุมัติ: ' + error.message);
+    }
+  };
+
+  const handleReject = async (paymentId: number) => {
     if (!rejectReason.trim()) {
       alert('กรุณาระบุเหตุผลการปฏิเสธ');
       return;
     }
 
-    setPayments(prev => prev.map(payment => 
-      payment.id === paymentId 
-        ? { ...payment, status: 'rejected', rejectReason }
-        : payment
-    ));
-    
-    alert('ปฏิเสธการชำระเงินแล้ว!\nระบบจะส่งแจ้งให้นักศึกษาแก้ไข');
-    setSelectedPayment(null);
-    setRejectReason('');
+    try {
+      console.log('Rejecting payment ID:', paymentId, 'Reason:', rejectReason);
+      
+      const response = await fetch(`/api/payments/${paymentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'rejected', rejectReason })
+      });
+      
+      const result = await response.json();
+      console.log('Reject response:', result);
+      
+      if (response.ok) {
+        setPayments(prev => prev.map(payment => 
+          payment.id === paymentId 
+            ? { ...payment, status: 'rejected', rejectReason }
+            : payment
+        ));
+        
+        alert('ปฏิเสธการชำระเงินแล้ว!\nระบบจะส่งแจ้งให้นักศึกษาแก้ไข');
+        setSelectedPayment(null);
+        setRejectReason('');
+        fetchPayments(); // รีเฟรชข้อมูล
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + (result.error || 'ไม่ทราบสาเหตุ'));
+      }
+    } catch (error) {
+      console.error('Error rejecting payment:', error);
+      alert('เกิดข้อผิดพลาดในการปฏิเสธ: ' + error.message);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -88,30 +110,90 @@ export default function AdminPaymentsPage() {
   };
 
   return (
-    <div className="admin-payments-page">
-      <header className="landing-header">
-        <div className="landing-header-container">
-          <div className="landing-logo">
-            <h1>SSKRU Admin Panel</h1>
-          </div>
-          <nav className="landing-nav">
-            <Link href="/admin" className="nav-link">
-              <ArrowLeft size={18} />
-              กลับ Admin
-            </Link>
-          </nav>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
+      <header style={{
+        background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+        color: 'white',
+        padding: '1rem 0',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: '700', margin: '0' }}>SSKRU Admin Panel</h1>
+          <Link href="/admin" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: 'white',
+            textDecoration: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '8px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            transition: 'background 0.2s'
+          }}>
+            <ArrowLeft size={18} />
+            กลับ Admin
+          </Link>
         </div>
       </header>
 
-      <main className="admin-payments-main">
-        <div className="admin-payments-container">
-          <div className="page-header">
-            <h1>ตรวจสอบการชำระเงิน</h1>
-            <p>อนุมัติหรือปฏิเสธการชำระเงินของนักศึกษา</p>
+      <main style={{ padding: '2rem 0' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '2rem',
+            marginBottom: '2rem',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+            textAlign: 'center'
+          }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.5rem' }}>ตรวจสอบการชำระเงิน</h1>
+            <p style={{ color: '#64748b', fontSize: '1.1rem' }}>อนุมัติหรือปฏิเสธการชำระเงินของนักศึกษา</p>
+            <button
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+              onClick={async () => {
+                if (confirm('คุณต้องการลบข้อมูลทั้งหมดหรือไม่?')) {
+                  try {
+                    const response = await fetch('/api/payments/clear', { method: 'DELETE' });
+                    if (response.ok) {
+                      alert('ลบข้อมูลสำเร็จ!');
+                      fetchPayments();
+                    }
+                  } catch (error) {
+                    alert('เกิดข้อผิดพลาด');
+                  }
+                }
+              }}
+            >
+              ลบข้อมูลทั้งหมด
+            </button>
           </div>
 
-          <div className="payments-table">
-            <div className="table-header">
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr 1.5fr 1.5fr 1fr 2fr',
+              gap: '1rem',
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+              fontWeight: '600',
+              color: '#475569',
+              fontSize: '0.875rem'
+            }}>
               <span>นักศึกษา</span>
               <span>ห้อง</span>
               <span>จำนวนเงิน</span>
@@ -120,41 +202,95 @@ export default function AdminPaymentsPage() {
               <span>การดำเนินการ</span>
             </div>
 
-            {payments.map((payment) => (
-              <div key={payment.id} className="table-row">
-                <div className="student-info">
-                  <strong>{payment.studentName}</strong>
-                  <small>{payment.studentId}</small>
+            {payments.map((payment, index) => (
+              <div key={payment.id} style={{
+                display: 'grid',
+                gridTemplateColumns: '2fr 1fr 1.5fr 1.5fr 1fr 2fr',
+                gap: '1rem',
+                padding: '1.5rem',
+                borderBottom: index < payments.length - 1 ? '1px solid #e2e8f0' : 'none',
+                alignItems: 'center',
+                transition: 'background 0.2s',
+                ':hover': { background: '#f8fafc' }
+              }}>
+                <div>
+                  <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>{payment.studentName}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{payment.studentId}</div>
                 </div>
-                <span>{payment.roomNumber}</span>
-                <div className="amount-info">
-                  <strong>{payment.amount.toLocaleString()} ฿</strong>
-                  <small>{payment.paymentType}</small>
+                <span style={{ fontWeight: '500', color: '#1e293b' }}>{payment.roomNumber}</span>
+                <div>
+                  <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.1rem' }}>{payment.amount.toLocaleString()} ฿</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{payment.paymentType}</div>
                 </div>
-                <span>{payment.uploadDate}</span>
+                <span style={{ color: '#64748b' }}>{payment.uploadDate}</span>
                 <div>{getStatusBadge(payment.status)}</div>
-                <div className="action-buttons">
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button 
-                    className="view-btn"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      padding: '0.5rem 0.75rem',
+                      background: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s'
+                    }}
                     onClick={() => setSelectedPayment(payment)}
+                    onMouseOver={(e) => e.target.style.background = '#2563eb'}
+                    onMouseOut={(e) => e.target.style.background = '#3b82f6'}
                   >
-                    <Eye size={16} />
+                    <Eye size={14} />
                     ดูสลิป
                   </button>
                   {payment.status === 'pending' && (
                     <>
                       <button 
-                        className="approve-btn"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          padding: '0.5rem 0.75rem',
+                          background: '#10b981',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s'
+                        }}
                         onClick={() => handleApprove(payment.id)}
+                        onMouseOver={(e) => e.target.style.background = '#059669'}
+                        onMouseOut={(e) => e.target.style.background = '#10b981'}
                       >
-                        <Check size={16} />
+                        <Check size={14} />
                         อนุมัติ
                       </button>
                       <button 
-                        className="reject-btn"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          padding: '0.5rem 0.75rem',
+                          background: '#ef4444',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s'
+                        }}
                         onClick={() => setSelectedPayment(payment)}
+                        onMouseOver={(e) => e.target.style.background = '#dc2626'}
+                        onMouseOut={(e) => e.target.style.background = '#ef4444'}
                       >
-                        <X size={16} />
+                        <X size={14} />
                         ปฏิเสธ
                       </button>
                     </>

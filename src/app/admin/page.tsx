@@ -15,7 +15,7 @@ const adminStats = [
 const menuItems = [
   { icon: <Users size={24} />, label: 'จัดการนักศึกษา', desc: 'ดูข้อมูล อนุมัติ ปฏิเสธ', color: '#3b82f6' },
   { icon: <Building size={24} />, label: 'จัดการห้องพัก', desc: 'สถานะห้อง การจอง', color: '#10b981' },
-  { icon: <CreditCard size={24} />, label: 'จัดการการเงิน', desc: 'ชำระเงิน ใบเสร็จ', color: '#f59e0b' },
+  { icon: <CreditCard size={24} />, label: 'จัดการการเงิน', desc: 'แจ้งค่าไฟค่าน้ำ ตรวจสอบการชำระ', color: '#f59e0b' },
   { icon: <Wrench size={24} />, label: 'จัดการซ่อมบำรุง', desc: 'รายการแจ้งซ่อม', color: '#ef4444' },
   { icon: <FileText size={24} />, label: 'จัดการประกาศ', desc: 'เพิ่ม แก้ไข ลบประกาศ', color: '#8b5cf6' },
   { icon: <BarChart3 size={24} />, label: 'รายงาน', desc: 'สถิติและรายงาน', color: '#06b6d4' },
@@ -29,61 +29,6 @@ const recentActivities = [
 ];
 
 export default function AdminPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [password, setPassword] = useState('');
-
-  const handleLogin = () => {
-    if (password === 'admin123') {
-      setIsLoggedIn(true);
-    } else {
-      alert('รหัสผ่านไม่ถูกต้อง');
-    }
-  };
-
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}>
-        <div className="bg-white p-10 rounded-2xl shadow-2xl w-96 transform hover:scale-105 transition-all duration-300">
-          <div className="text-center mb-8">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
-              <Users className="text-white" size={32} />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel</h2>
-            <p className="text-gray-600">ระบบจัดการหอพัก</p>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="relative">
-              <input
-                type="password"
-                placeholder="รหัสผ่านแอดมิน"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors duration-200 pl-12"
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-              />
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                🔒
-              </div>
-            </div>
-            
-            <button
-              onClick={handleLogin}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 font-semibold shadow-lg"
-            >
-              เข้าสู่ระบบ
-            </button>
-          </div>
-          
-          <div className="mt-6 text-center text-sm text-gray-500">
-            รหัส: admin123
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
       <div className="admin-page">
@@ -119,7 +64,7 @@ export default function AdminPage() {
                   switch(label) {
                     case 'จัดการนักศึกษา': return '/admin/students';
                     case 'จัดการห้องพัก': return '/admin/rooms';
-                    case 'จัดการการเงิน': return '/admin/finance';
+                    case 'จัดการการเงิน': return '/admin/utilities';
                     case 'จัดการซ่อมบำรุง': return '/admin/maintenance';
                     case 'จัดการประกาศ': return '/admin/announcements';
                     case 'รายงาน': return '/admin/reports';

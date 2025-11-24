@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Check, X, Eye, Download } from 'lucide-react';
 import Link from 'next/link';
+import './payments.css';
 
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState([]);
@@ -346,26 +347,29 @@ export default function AdminPaymentsPage() {
                   <div className="payment-details">
                     <div className="detail-section">
                       <h4>ข้อมูลนักศึกษา</h4>
-                      <p><strong>ชื่อ:</strong> {selectedPayment.studentName || 'ไม่ระบุ'}</p>
                       <p><strong>รหัส:</strong> {selectedPayment.studentId || selectedPayment.userId || 'ไม่ระบุ'}</p>
                       <p><strong>ห้อง:</strong> {selectedPayment.roomNumber || 'ไม่ระบุ'}</p>
                     </div>
                     
                     <div className="detail-section">
                       <h4>ข้อมูลการชำระ</h4>
-                      <p><strong>ประเภท:</strong> {selectedPayment.paymentType || 'ไม่ระบุ'}</p>
-                      <p><strong>จำนวน:</strong> {(selectedPayment.amount || 0).toLocaleString()} บาท</p>
-                      <p><strong>วันที่:</strong> {selectedPayment.uploadDate || new Date(selectedPayment.createdAt).toLocaleDateString('th-TH')}</p>
+                      <p><strong>รายการ:</strong> ค่าเช่าห้อง {selectedPayment.roomNumber || 'ไม่ระบุ'}</p>
+                      <p><strong>จำนวนเงิน:</strong> {(selectedPayment.amount || 0).toLocaleString()} บาท</p>
+                      <p><strong>วันที่อัปโหลด:</strong> {selectedPayment.uploadDate || new Date(selectedPayment.createdAt).toLocaleDateString('th-TH')}</p>
                     </div>
 
                     <div className="detail-section">
                       <h4>หลักฐานการโอนเงิน</h4>
                       <div className="slip-preview">
-                        <div className="slip-placeholder">
-                          [รูปสลิปการโอนเงิน]
-                          <br />
-                          {selectedPayment.slipImage}
-                        </div>
+                        {selectedPayment.slipUrl ? (
+                          <img 
+                            src={selectedPayment.slipUrl} 
+                            alt="สลิปการโอนเงิน" 
+                            className="slip-image"
+                          />
+                        ) : (
+                          <div className="slip-placeholder">ไม่มีรูปสลิป</div>
+                        )}
                       </div>
                     </div>
 

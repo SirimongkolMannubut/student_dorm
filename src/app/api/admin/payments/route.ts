@@ -52,19 +52,6 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
-    if (token) {
-      try {
-        const decoded: any = verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
-        if (decoded.role !== 'admin') {
-          return NextResponse.json({ error: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
-        }
-      } catch (err) {
-        console.error('Token verification error:', err);
-      }
-    }
-
     const payments = await Payment.find().sort({ createdAt: -1 });
     console.log('Found payments:', payments.length);
     

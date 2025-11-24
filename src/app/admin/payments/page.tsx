@@ -13,6 +13,8 @@ export default function AdminPaymentsPage() {
 
   useEffect(() => {
     fetchPayments();
+    const interval = setInterval(fetchPayments, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchPayments = async () => {
@@ -29,6 +31,7 @@ export default function AdminPaymentsPage() {
       console.log('Response data:', data);
       
       if (response.ok) {
+        console.log('Payments count:', data.payments?.length || 0);
         const formattedPayments = (data.payments || []).map((p: any) => ({
           ...p,
           id: p._id || p.id,
@@ -41,8 +44,6 @@ export default function AdminPaymentsPage() {
         }));
         console.log('Formatted payments:', formattedPayments);
         setPayments(formattedPayments);
-      } else {
-        console.error('API error:', data);
       }
     } catch (error) {
       console.error('Error fetching payments:', error);
@@ -233,7 +234,11 @@ export default function AdminPaymentsPage() {
               <span>การดำเนินการ</span>
             </div>
 
-            {payments.map((payment, index) => (
+            {payments.length === 0 ? (
+              <div style={{padding: '3rem', textAlign: 'center', color: '#64748b'}}>
+                ไม่มีข้อมูลการชำระเงิน
+              </div>
+            ) : payments.map((payment, index) => (
               <div key={payment.id} style={{
                 display: 'grid',
                 gridTemplateColumns: '2fr 1fr 1.5fr 1.5fr 1fr 2fr',

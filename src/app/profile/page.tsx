@@ -71,7 +71,12 @@ export default function ProfilePage() {
           currentAddress: user.currentAddress || '',
           guardianName: user.guardianName || '',
           emergencyPhone: user.emergencyPhone || '',
-          rentalStatus: user.status === 'pending' ? 'รอการอนุมัติ' : user.status === 'approved' ? 'อนุมัติแล้ว' : 'ไม่ระบุ'
+          houseNumber: user.houseNumber || '',
+          province: user.province || '',
+          roomNumber: user.roomNumber || '',
+          checkInDate: user.checkInDate || '',
+          contractEndDate: user.contractEndDate || '',
+          rentalStatus: user.rentalStatus || (user.status === 'pending' ? 'รอการอนุมัติ' : user.status === 'approved' ? 'อนุมัติแล้ว' : 'ไม่ระบุ')
         }));
       } else {
         console.log('Failed to fetch profile:', response.status);
@@ -109,7 +114,13 @@ export default function ProfilePage() {
         birthDate: userInfo.birthDate,
         currentAddress: userInfo.currentAddress,
         guardianName: userInfo.guardianName,
-        emergencyPhone: userInfo.emergencyPhone
+        emergencyPhone: userInfo.emergencyPhone,
+        houseNumber: userInfo.houseNumber,
+        province: userInfo.province,
+        roomNumber: userInfo.roomNumber,
+        checkInDate: userInfo.checkInDate,
+        contractEndDate: userInfo.contractEndDate,
+        rentalStatus: userInfo.rentalStatus
       };
 
       console.log('Sending update data:', updateData); // Debug log

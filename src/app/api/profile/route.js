@@ -28,7 +28,17 @@ export async function GET(req) {
         major: decoded.major || '',
         faculty: decoded.faculty || '',
         role: decoded.role || 'student',
-        status: decoded.status || 'pending'
+        status: decoded.status || 'pending',
+        birthDate: decoded.birthDate || '',
+        currentAddress: decoded.currentAddress || '',
+        guardianName: decoded.guardianName || '',
+        emergencyPhone: decoded.emergencyPhone || '',
+        houseNumber: decoded.houseNumber || '',
+        province: decoded.province || '',
+        roomNumber: decoded.roomNumber || '',
+        checkInDate: decoded.checkInDate || '',
+        contractEndDate: decoded.contractEndDate || '',
+        rentalStatus: decoded.rentalStatus || ''
       };
 
       return NextResponse.json(user, { status: 200 });

@@ -34,7 +34,17 @@ export async function POST(req) {
         gender: updatedUser.gender,
         year: updatedUser.year,
         major: updatedUser.major,
-        faculty: updatedUser.faculty
+        faculty: updatedUser.faculty,
+        birthDate: updatedUser.birthDate,
+        currentAddress: updatedUser.currentAddress,
+        guardianName: updatedUser.guardianName,
+        emergencyPhone: updatedUser.emergencyPhone,
+        houseNumber: updatedUser.houseNumber,
+        province: updatedUser.province,
+        roomNumber: updatedUser.roomNumber,
+        checkInDate: updatedUser.checkInDate,
+        contractEndDate: updatedUser.contractEndDate,
+        rentalStatus: updatedUser.rentalStatus
       },
       "dev-secret-change-this",
       { expiresIn: '1d' }

@@ -100,31 +100,7 @@ export default function PaymentHistoryPage() {
         slipUploaded: record.slipUploaded
       }));
       
-      // Mock data เก่า (เฉพาะของ studentId 62010001)
-      const mockHistory: PaymentRecord[] = studentId === '62010001' ? [
-        {
-          id: 1001,
-          month: 'มกราคม 2025',
-          amount: 3950,
-          type: 'ค่ามัดจำ + ค่าเช่าเดือนแรก',
-          status: 'paid',
-          dueDate: '2025-01-05',
-          paidDate: '2025-01-03',
-          method: 'PromptPay',
-          slipUploaded: true
-        },
-        {
-          id: 1002,
-          month: 'กุมภาพันธ์ 2025',
-          amount: 4000,
-          type: 'ค่าเช่า + ค่าน้ำ + ค่าไฟ + อินเทอร์เน็ต',
-          status: 'paid',
-          dueDate: '2025-02-05',
-          paidDate: '2025-02-04',
-          method: 'PromptPay',
-          slipUploaded: true
-        }
-      ] : [];
+      const mockHistory: PaymentRecord[] = [];
       
       // ดึงข้อมูลจาก API bookings
       const bookingsResponse = await fetch('/api/bookings', {
@@ -133,35 +109,26 @@ export default function PaymentHistoryPage() {
       const bookingsData = await bookingsResponse.json();
       const userBookings = bookingsData.bookings || [];
       
-      let localPayments: PaymentRecord[] = userBookings.map((booking: any) => ({
-        id: booking._id,
-        bookingId: booking._id,
-        month: 'มีนาคม 2025',
-        amount: booking.price || booking.amount || 0,
-        type: `ห้อง ${booking.roomId} - ${booking.roomType}`,
-        status: booking.status === 'approved' ? 'paid' : 'pending',
-        dueDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
-        method: booking.status === 'approved' ? 'PromptPay' : '-',
-        slipUploaded: false
-      }));
+      // สร้าง Set ของ bookingId ที่มีการอัปโหลดสลิปแล้ว
+      const paidBookingIds = new Set(userPayments.map((p: any) => p.bookingId));
       
-      // เพิ่มรายการใหม่หากไม่มีข้อมูลจาก API
-      if (localPayments.length === 0 && mockHistory.length > 0) {
-        // เพิ่มรายการใหม่ที่ยังไม่ได้ชำระ
-        mockHistory.push({
-          id: 1003,
+      // แสดงเฉพาะ booking ที่ยังไม่ได้อัปโหลดสลิป
+      let localPayments: PaymentRecord[] = userBookings
+        .filter((booking: any) => !paidBookingIds.has(booking._id))
+        .map((booking: any) => ({
+          id: booking._id,
+          bookingId: booking._id,
           month: 'มีนาคม 2025',
-          amount: 3850,
-          type: 'ค่าเช่า + ค่าน้ำ + ค่าไฟ + อินเทอร์เน็ต',
+          amount: booking.price || booking.amount || 0,
+          type: `ห้อง ${booking.roomId} - ${booking.roomType}`,
           status: 'pending',
-          dueDate: '2025-03-05',
+          dueDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
           method: '-',
           slipUploaded: false
-        });
-      }
+        }));
       
       // รวมข้อมูลทั้งหมด
-      const allPayments = [...apiPayments, ...localPayments, ...mockHistory]
+      const allPayments = [...apiPayments, ...localPayments]
         .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
       
       setPaymentHistory(allPayments);

@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     const jwt = require('jsonwebtoken');
     const token = jwt.sign(
       { 
+        userId: user.id,
         sub: user.id, 
         email: user.email, 
         role: user.role, 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
         major: user.major,
         faculty: user.faculty
       },
-      'dev-secret-change-this',
+      process.env.JWT_SECRET || 'your-secret-key-here',
       { expiresIn: '1d' }
     );
     

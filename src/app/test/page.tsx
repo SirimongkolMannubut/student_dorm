@@ -68,6 +68,134 @@ export default function TestPage() {
     setResult(`All cookies: ${document.cookie}\n\nToken: ${token ? token.substring(0, 50) + '...' : 'ไม่มี token'}`);
   };
 
+  const testBooking = async () => {
+    try {
+      const cookies = document.cookie.split(';');
+      const tokenCookie = cookies.find(c => c.trim().startsWith('token='));
+      const token = tokenCookie?.split('=')[1];
+
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          roomId: 'A101',
+          roomType: 'แอร์',
+          price: 3000
+        })
+      });
+      
+      const data = await response.json();
+      setResult('Booking: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Booking Error: ' + error.message);
+    }
+  };
+
+  const testPaymentUpload = async () => {
+    try {
+      const cookies = document.cookie.split(';');
+      const tokenCookie = cookies.find(c => c.trim().startsWith('token='));
+      const token = tokenCookie?.split('=')[1];
+
+      const formData = new FormData();
+      const mockFile = new File(['mock slip'], 'slip.jpg', { type: 'image/jpeg' });
+      formData.append('slip', mockFile);
+      formData.append('bookingId', '1');
+      formData.append('amount', '3000');
+
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      
+      const data = await response.json();
+      setResult('Payment Upload: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Payment Upload Error: ' + error.message);
+    }
+  };
+
+  const testAdminLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: 'admin@sskru.ac.th',
+          password: 'admin123'
+        })
+      });
+      
+      const data = await response.json();
+      setResult('Admin Login: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Admin Login Error: ' + error.message);
+    }
+  };
+
+  const testAdminApprove = async () => {
+    try {
+      const cookies = document.cookie.split(';');
+      const tokenCookie = cookies.find(c => c.trim().startsWith('token='));
+      const token = tokenCookie?.split('=')[1];
+
+      // ดึง payment ล่าสุดก่อน
+      const getResponse = await fetch('/api/admin/payments', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const getData = await getResponse.json();
+      const latestPayment = getData.payments?.[0];
+      
+      if (!latestPayment) {
+        setResult('No payments found');
+        return;
+      }
+
+      const response = await fetch('/api/admin/payments', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          paymentId: latestPayment._id,
+          status: 'approved'
+        })
+      });
+      
+      const data = await response.json();
+      setResult('Admin Approve: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Admin Approve Error: ' + error.message);
+    }
+  };
+
+  const clearBookings = async () => {
+    try {
+      const response = await fetch('/api/bookings/clear', { method: 'DELETE' });
+      const data = await response.json();
+      setResult('Clear Bookings: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Clear Bookings Error: ' + error.message);
+    }
+  };
+
+  const clearPayments = async () => {
+    try {
+      const response = await fetch('/api/payments/clear', { method: 'DELETE' });
+      const data = await response.json();
+      setResult('Clear Payments: ' + JSON.stringify(data, null, 2));
+    } catch (error) {
+      setResult('Clear Payments Error: ' + error.message);
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <h1>Test Page</h1>
@@ -82,6 +210,30 @@ export default function TestPage() {
       
       <button onClick={checkCookie} style={{ margin: '10px', padding: '10px' }}>
         Check Cookie
+      </button>
+      
+      <button onClick={testBooking} style={{ margin: '10px', padding: '10px' }}>
+        Test Booking
+      </button>
+      
+      <button onClick={testPaymentUpload} style={{ margin: '10px', padding: '10px' }}>
+        Test Payment Upload
+      </button>
+      
+      <button onClick={testAdminLogin} style={{ margin: '10px', padding: '10px', background: '#ff9800' }}>
+        Test Admin Login
+      </button>
+      
+      <button onClick={testAdminApprove} style={{ margin: '10px', padding: '10px' }}>
+        Test Admin Approve
+      </button>
+      
+      <button onClick={clearBookings} style={{ margin: '10px', padding: '10px', background: '#ef4444' }}>
+        Clear Bookings
+      </button>
+      
+      <button onClick={clearPayments} style={{ margin: '10px', padding: '10px', background: '#ef4444' }}>
+        Clear Payments
       </button>
       
       <pre style={{ background: '#f5f5f5', padding: '10px', marginTop: '20px' }}>

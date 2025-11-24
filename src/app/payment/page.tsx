@@ -140,12 +140,23 @@ export default function PaymentPage() {
       }
 
       // ส่งข้อมูลไป API
+      const cookies = document.cookie.split(';');
+      const tokenCookie = cookies.find(c => c.trim().startsWith('token='));
+      const token = tokenCookie?.split('=')[1];
+
+      const formData = new FormData();
+      formData.append('slip', selectedFile);
+      formData.append('bookingId', selectedPayment?.bookingId || pendingBooking?.bookingId || '1');
+      formData.append('amount', (pendingBooking?.totalAmount || selectedPayment?.amount || 3850).toString());
+      formData.append('paymentType', paymentData.paymentType);
+      formData.append('month', paymentData.month);
+
       const response = await fetch('/api/payments', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(paymentData)
+        body: formData
       });
 
       if (response.ok) {
@@ -169,7 +180,10 @@ export default function PaymentPage() {
         
         window.location.href = '/payment-history';
       } else {
-        throw new Error('ไม่สามารถส่งข้อมูลได้');
+        const text = await response.text();
+        console.error('API Error Response:', text);
+        alert('อัปโหลดสลิปล้มเหลว: ' + text);
+        return;
       }
 
     } catch (error) {

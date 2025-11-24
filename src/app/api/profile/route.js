@@ -12,7 +12,7 @@ export async function GET(req) {
     console.log('Token received:', token);
 
     try {
-      const decoded = jwt.verify(token, 'dev-secret-change-this');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
       console.log('Token decoded:', decoded);
 
       // ส่งข้อมูลจาก token กลับไป - ไม่ต้องใช้ database

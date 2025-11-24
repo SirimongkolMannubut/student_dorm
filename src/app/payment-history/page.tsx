@@ -60,10 +60,14 @@ export default function PaymentHistoryPage() {
 
   const loadPaymentHistory = async (studentId: string) => {
     try {
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      
       // ดึงข้อมูลจาก API payments (สลิปที่อัปโหลดแล้ว)
-      const paymentsResponse = await fetch('/api/payments');
+      const paymentsResponse = await fetch('/api/payments', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
       const paymentsData = await paymentsResponse.json();
-      const userPayments = paymentsData.payments?.filter((p: any) => p.studentId === studentId) || [];
+      const userPayments = paymentsData.payments || [];
       
       // ดึงข้อมูลจาก API payment-records (รายการที่ยังไม่ได้อัปโหลดสลิป)
       const recordsResponse = await fetch(`/api/payment-records?studentId=${studentId}`);
@@ -72,12 +76,12 @@ export default function PaymentHistoryPage() {
       
       // แปลงข้อมูลจาก payments API
       const apiPayments: PaymentRecord[] = userPayments.map((payment: any) => ({
-        id: payment.id,
+        id: payment._id || payment.id,
         month: payment.month || 'มีนาคม 2025',
-        amount: payment.amount,
-        type: payment.paymentType,
+        amount: payment.amount || 0,
+        type: payment.paymentType || 'ค่าเช่า',
         status: payment.status === 'approved' ? 'paid' : payment.status === 'rejected' ? 'overdue' : 'pending',
-        dueDate: payment.dueDate,
+        dueDate: payment.dueDate || new Date().toISOString().split('T')[0],
         paidDate: payment.status === 'approved' ? payment.uploadTime : undefined,
         method: payment.status === 'approved' ? 'PromptPay' : '-',
         slipUploaded: true
@@ -122,8 +126,27 @@ export default function PaymentHistoryPage() {
         }
       ] : [];
       
+      // ดึงข้อมูลจาก API bookings
+      const bookingsResponse = await fetch('/api/bookings', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      const bookingsData = await bookingsResponse.json();
+      const userBookings = bookingsData.bookings || [];
+      
+      let localPayments: PaymentRecord[] = userBookings.map((booking: any) => ({
+        id: booking._id,
+        bookingId: booking._id,
+        month: 'มีนาคม 2025',
+        amount: booking.price || booking.amount || 0,
+        type: `ห้อง ${booking.roomId} - ${booking.roomType}`,
+        status: booking.status === 'approved' ? 'paid' : 'pending',
+        dueDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+        method: booking.status === 'approved' ? 'PromptPay' : '-',
+        slipUploaded: false
+      }));
+      
       // เพิ่มรายการใหม่หากไม่มีข้อมูลจาก API
-      if (apiPayments.length === 0 && recordPayments.length === 0 && mockHistory.length > 0) {
+      if (localPayments.length === 0 && mockHistory.length > 0) {
         // เพิ่มรายการใหม่ที่ยังไม่ได้ชำระ
         mockHistory.push({
           id: 1003,
@@ -138,7 +161,7 @@ export default function PaymentHistoryPage() {
       }
       
       // รวมข้อมูลทั้งหมด
-      const allPayments = [...apiPayments, ...recordPayments, ...mockHistory]
+      const allPayments = [...apiPayments, ...localPayments, ...mockHistory]
         .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
       
       setPaymentHistory(allPayments);
@@ -278,7 +301,7 @@ export default function PaymentHistoryPage() {
                     <span>{payment.type}</span>
                   </div>
                   <div className="amount-cell">
-                    <strong>{payment.amount.toLocaleString()} ฿</strong>
+                    <strong>{(payment.amount || 0).toLocaleString()} ฿</strong>
                   </div>
                   <div className="due-date-cell">
                     {new Date(payment.dueDate).toLocaleDateString('th-TH')}
@@ -292,7 +315,11 @@ export default function PaymentHistoryPage() {
                       <button 
                         className="pay-btn"
                         onClick={() => {
-                          localStorage.setItem('selectedPayment', JSON.stringify(payment));
+                          const paymentData = {
+                            ...payment,
+                            bookingId: payment.bookingId || payment.id
+                          };
+                          localStorage.setItem('selectedPayment', JSON.stringify(paymentData));
                           window.location.href = '/payment';
                         }}
                       >

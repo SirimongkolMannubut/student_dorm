@@ -8,7 +8,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "No token" }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, "dev-secret-change-this");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
     const updateData = await req.json();
 
     // อัปเดตข้อมูลใน token แทนการบันทึกลง database
@@ -46,7 +46,7 @@ export async function POST(req) {
         contractEndDate: updatedUser.contractEndDate,
         rentalStatus: updatedUser.rentalStatus
       },
-      "dev-secret-change-this",
+      process.env.JWT_SECRET || 'your-secret-key-here',
       { expiresIn: '1d' }
     );
 

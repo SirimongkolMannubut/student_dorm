@@ -1,14 +1,17 @@
 import mongoose from 'mongoose';
 
+if (mongoose.models.Payment) {
+  delete mongoose.models.Payment;
+}
+
 const paymentSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  room: { type: mongoose.Schema.Types.ObjectId, ref: 'Room', required: true },
+  userId: { type: String, required: true },
+  bookingId: { type: String },
   amount: { type: Number, required: true },
-  status: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
-  receiptNumber: { type: String, unique: true, sparse: true },
-  paymentDate: { type: Date },
-  dueDate: { type: Date, required: true },
-  createdAt: { type: Date, default: Date.now }
+  slipUrl: { type: String },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.models.Payment || mongoose.model('Payment', paymentSchema);
+export default mongoose.model('Payment', paymentSchema);

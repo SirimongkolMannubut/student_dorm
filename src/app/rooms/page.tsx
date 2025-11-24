@@ -25,7 +25,7 @@ const generateOccupants = (count: number) => {
 const generateRooms = (buildingId: string, floors: number) => {
   const rooms = [];
   for (let floor = 1; floor <= floors; floor++) {
-    for (let room = 1; room <= 18; room++) {
+    for (let room = 1; room <= 4; room++) {
       const roomNumber = `${buildingId}${floor}${room.toString().padStart(2, '0')}`;
       const occupantCount = Math.floor(Math.random() * 5); // 0-4 คน
       const type = Math.random() > 0.5 ? 'แอร์' : 'ปกติ';
@@ -62,23 +62,14 @@ const generateRooms = (buildingId: string, floors: number) => {
 };
 
 const buildings = [
-  // อาคารผู้ชาย 3 อาคาร
+  // อาคารผู้ชาย 2 อาคาร
   { id: 'A', name: 'อาคาร A', floors: 4, type: 'ชาย', rooms: generateRooms('A', 4) },
   { id: 'B', name: 'อาคาร B', floors: 4, type: 'ชาย', rooms: generateRooms('B', 4) },
-  { id: 'C', name: 'อาคาร C', floors: 4, type: 'ชาย', rooms: generateRooms('C', 4) },
-  // อาคารผู้หญิง 9 อาคาร
-  { id: 'D', name: 'อาคาร D', floors: 4, type: 'หญิง', rooms: generateRooms('D', 4) },
-  { id: 'E', name: 'อาคาร E', floors: 4, type: 'หญิง', rooms: generateRooms('E', 4) },
-  { id: 'F', name: 'อาคาร F', floors: 4, type: 'หญิง', rooms: generateRooms('F', 4) },
-  { id: 'G', name: 'อาคาร G', floors: 4, type: 'หญิง', rooms: generateRooms('G', 4) },
-  { id: 'H', name: 'อาคาร H', floors: 4, type: 'หญิง', rooms: generateRooms('H', 4) },
-  { id: 'I', name: 'อาคาร I', floors: 4, type: 'หญิง', rooms: generateRooms('I', 4) },
-  { id: 'J', name: 'อาคาร J', floors: 4, type: 'หญิง', rooms: generateRooms('J', 4) },
-  { id: 'K', name: 'อาคาร K', floors: 4, type: 'หญิง', rooms: generateRooms('K', 4) },
-  { id: 'L', name: 'อาคาร L', floors: 4, type: 'หญิง', rooms: generateRooms('L', 4) },
+  // อาคารผู้หญิง 1 อาคาร
+  { id: 'C', name: 'อาคาร C', floors: 4, type: 'หญิง', rooms: generateRooms('C', 4) },
 ].map(building => ({
   ...building,
-  totalRooms: building.floors * 18,
+  totalRooms: building.floors * 4,
   availableRooms: building.rooms.filter(room => room.available).length
 }));
 
@@ -97,23 +88,40 @@ export default function RoomsPage() {
     setIsBooking(true);
     
     try {
-      // บันทึกข้อมูลการจองลง localStorage
-      const bookingData = {
-        roomNumber: showBookingConfirm.roomNumber,
-        roomType: showBookingConfirm.type,
-        price: showBookingConfirm.price,
-        deposit: 450,
-        totalAmount: showBookingConfirm.price + 450,
-        bookingDate: new Date().toISOString()
-      };
-      
-      localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      alert('จองห้องสำเร็จ! \n\nกรุณาไปที่หน้าประวัติการชำระเงินเพื่อชำระค่ามัดจำและค่าเช่า');
-      
-      window.location.href = '/payment-history';
+      const cookies = document.cookie.split(';');
+      const tokenCookie = cookies.find(c => c.trim().startsWith('token='));
+      const token = tokenCookie?.split('=')[1];
+
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          roomId: showBookingConfirm.roomNumber,
+          roomType: showBookingConfirm.type,
+          price: showBookingConfirm.price
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        alert('จองห้องสำเร็จ! \n\nกรุณาไปที่หน้าประวัติการชำระเงินเพื่อชำระค่ามัดจำและค่าเช่า');
+        window.location.href = '/payment-history';
+      } else {
+        const text = await response.text();
+        try {
+          const error = JSON.parse(text);
+          alert(error.error || 'การจองล้มเหลว');
+        } catch {
+          alert('การจองล้มเหลว');
+        }
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('เกิดข้อผิดพลาดในการจอง');
     } finally {
       setIsBooking(false);
     }
@@ -143,14 +151,14 @@ export default function RoomsPage() {
                   <Users size={48} />
                 </div>
                 <h2>อาคารผู้ชาย</h2>
-                <p>3 อาคาร</p>
+                <p>2 อาคาร</p>
               </div>
               <div className="gender-card" onClick={() => setSelectedGender('หญิง')}>
                 <div className="gender-icon female">
                   <Users size={48} />
                 </div>
                 <h2>อาคารผู้หญิง</h2>
-                <p>9 อาคาร</p>
+                <p>1 อาคาร</p>
               </div>
             </div>
           ) : !selectedBuilding ? (
@@ -432,12 +440,44 @@ export default function RoomsPage() {
                     <button 
                       className="submit-btn"
                       disabled={!selectedSlip}
-                      onClick={() => {
+                      onClick={async () => {
                         if (selectedSlip) {
-                          alert('ชำระเงินสำเร็จ! \n\n✓ สัญญาดิจิทัลสร้างอัตโนมัติ\n✓ อนุมัติทันที - มารับกุญแจได้เลย!');
+                          try {
+                            const cookies = document.cookie.split(';');
+                            const tokenCookie = cookies.find(c => c.trim().startsWith('token='));
+                            const token = tokenCookie?.split('=')[1];
+
+                            const formData = new FormData();
+                            formData.append('slip', selectedSlip);
+                            formData.append('bookingId', '1');
+                            formData.append('amount', (showPayment.price + 450).toString());
+
+                            const response = await fetch('/api/payments', {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${token}`
+                              },
+                              body: formData
+                            });
+
+                            if (response.ok) {
+                              alert('อัปโหลดสลิปสำเร็จ รอการตรวจสอบ');
+                              window.location.href = '/payment-history';
+                            } else {
+                              const text = await response.text();
+                              try {
+                                const error = JSON.parse(text);
+                                alert(error.error || 'อัปโหลดล้มเหลว');
+                              } catch {
+                                alert('อัปโหลดล้มเหลว');
+                              }
+                            }
+                          } catch (error) {
+                            console.error('Upload error:', error);
+                            alert('เกิดข้อผิดพลาดในการอัปโหลด');
+                          }
                           setShowPayment(null);
                           setSelectedSlip(null);
-                          window.location.href = '/dashboard';
                         }
                       }}
                     >

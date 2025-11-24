@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
-const SECRET = 'dev-secret-change-this';
+const SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
 
 // Initialize global storage
 if (!global.registeredUsers) {
@@ -28,6 +28,7 @@ export async function POST(req: Request) {
     if (adminUser.email === identifier && adminUser.password === password) {
       const token = jwt.sign(
         { 
+          userId: adminUser.id,
           sub: adminUser.id, 
           email: adminUser.email, 
           role: adminUser.role, 
@@ -73,6 +74,7 @@ export async function POST(req: Request) {
     // Generate JWT token
     const token = jwt.sign(
       { 
+        userId: user.id,
         sub: user.id, 
         email: user.email, 
         role: user.role, 

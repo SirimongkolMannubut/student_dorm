@@ -16,10 +16,32 @@ export default function AdminPaymentsPage() {
 
   const fetchPayments = async () => {
     try {
-      const response = await fetch('/api/payments');
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      console.log('Fetching payments with token:', token ? 'Yes' : 'No');
+      
+      const response = await fetch('/api/admin/payments', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+      
       if (response.ok) {
-        const data = await response.json();
-        setPayments(data.payments || []);
+        const formattedPayments = (data.payments || []).map((p: any) => ({
+          ...p,
+          id: p._id || p.id,
+          studentName: p.studentName || 'ไม่ระบุ',
+          studentId: p.studentId || p.userId || 'ไม่ระบุ',
+          roomNumber: p.roomNumber || 'ไม่ระบุ',
+          amount: p.amount || 0,
+          paymentType: p.paymentType || 'ค่าเช่า',
+          uploadDate: p.uploadDate || new Date(p.createdAt).toLocaleDateString('th-TH')
+        }));
+        console.log('Formatted payments:', formattedPayments);
+        setPayments(formattedPayments);
+      } else {
+        console.error('API error:', data);
       }
     } catch (error) {
       console.error('Error fetching payments:', error);
@@ -29,11 +51,15 @@ export default function AdminPaymentsPage() {
   const handleApprove = async (paymentId: number) => {
     try {
       console.log('Approving payment ID:', paymentId);
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
       
-      const response = await fetch(`/api/payments/${paymentId}`, {
+      const response = await fetch('/api/admin/payments', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'approved' })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ paymentId, status: 'approved' })
       });
       
       const result = await response.json();
@@ -66,11 +92,15 @@ export default function AdminPaymentsPage() {
 
     try {
       console.log('Rejecting payment ID:', paymentId, 'Reason:', rejectReason);
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
       
-      const response = await fetch(`/api/payments/${paymentId}`, {
+      const response = await fetch('/api/admin/payments', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'rejected', rejectReason })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ paymentId, status: 'rejected', rejectReason })
       });
       
       const result = await response.json();
@@ -214,15 +244,15 @@ export default function AdminPaymentsPage() {
                 ':hover': { background: '#f8fafc' }
               }}>
                 <div>
-                  <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>{payment.studentName}</div>
-                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{payment.studentId}</div>
+                  <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>{payment.studentName || 'ไม่ระบุ'}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{payment.studentId || payment.userId || 'ไม่ระบุ'}</div>
                 </div>
-                <span style={{ fontWeight: '500', color: '#1e293b' }}>{payment.roomNumber}</span>
+                <span style={{ fontWeight: '500', color: '#1e293b' }}>{payment.roomNumber || 'ไม่ระบุ'}</span>
                 <div>
-                  <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.1rem' }}>{payment.amount.toLocaleString()} ฿</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{payment.paymentType}</div>
+                  <div style={{ fontWeight: '700', color: '#10b981', fontSize: '1.1rem' }}>{(payment.amount || 0).toLocaleString()} ฿</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{payment.paymentType || 'ไม่ระบุ'}</div>
                 </div>
-                <span style={{ color: '#64748b' }}>{payment.uploadDate}</span>
+                <span style={{ color: '#64748b' }}>{payment.uploadDate || new Date(payment.createdAt).toLocaleDateString('th-TH')}</span>
                 <div>{getStatusBadge(payment.status)}</div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button 
@@ -264,7 +294,7 @@ export default function AdminPaymentsPage() {
                           cursor: 'pointer',
                           transition: 'background 0.2s'
                         }}
-                        onClick={() => handleApprove(payment.id)}
+                        onClick={() => handleApprove(payment._id || payment.id)}
                         onMouseOver={(e) => e.target.style.background = '#059669'}
                         onMouseOut={(e) => e.target.style.background = '#10b981'}
                       >
@@ -286,7 +316,7 @@ export default function AdminPaymentsPage() {
                           cursor: 'pointer',
                           transition: 'background 0.2s'
                         }}
-                        onClick={() => setSelectedPayment(payment)}
+                        onClick={() => { setSelectedPayment(payment); setRejectReason(''); }}
                         onMouseOver={(e) => e.target.style.background = '#dc2626'}
                         onMouseOut={(e) => e.target.style.background = '#ef4444'}
                       >
@@ -317,16 +347,16 @@ export default function AdminPaymentsPage() {
                   <div className="payment-details">
                     <div className="detail-section">
                       <h4>ข้อมูลนักศึกษา</h4>
-                      <p><strong>ชื่อ:</strong> {selectedPayment.studentName}</p>
-                      <p><strong>รหัส:</strong> {selectedPayment.studentId}</p>
-                      <p><strong>ห้อง:</strong> {selectedPayment.roomNumber}</p>
+                      <p><strong>ชื่อ:</strong> {selectedPayment.studentName || 'ไม่ระบุ'}</p>
+                      <p><strong>รหัส:</strong> {selectedPayment.studentId || selectedPayment.userId || 'ไม่ระบุ'}</p>
+                      <p><strong>ห้อง:</strong> {selectedPayment.roomNumber || 'ไม่ระบุ'}</p>
                     </div>
                     
                     <div className="detail-section">
                       <h4>ข้อมูลการชำระ</h4>
-                      <p><strong>ประเภท:</strong> {selectedPayment.paymentType}</p>
-                      <p><strong>จำนวน:</strong> {selectedPayment.amount.toLocaleString()} บาท</p>
-                      <p><strong>วันที่:</strong> {selectedPayment.uploadDate}</p>
+                      <p><strong>ประเภท:</strong> {selectedPayment.paymentType || 'ไม่ระบุ'}</p>
+                      <p><strong>จำนวน:</strong> {(selectedPayment.amount || 0).toLocaleString()} บาท</p>
+                      <p><strong>วันที่:</strong> {selectedPayment.uploadDate || new Date(selectedPayment.createdAt).toLocaleDateString('th-TH')}</p>
                     </div>
 
                     <div className="detail-section">
@@ -353,7 +383,7 @@ export default function AdminPaymentsPage() {
                         <div className="action-section">
                           <button 
                             className="approve-btn-large"
-                            onClick={() => handleApprove(selectedPayment.id)}
+                            onClick={() => handleApprove(selectedPayment._id || selectedPayment.id)}
                           >
                             <Check size={20} />
                             อนุมัติการชำระเงิน
@@ -368,7 +398,7 @@ export default function AdminPaymentsPage() {
                             />
                             <button 
                               className="reject-btn-large"
-                              onClick={() => handleReject(selectedPayment.id)}
+                              onClick={() => handleReject(selectedPayment._id || selectedPayment.id)}
                             >
                               <X size={20} />
                               ปฏิเสธและส่งกลับแก้ไข

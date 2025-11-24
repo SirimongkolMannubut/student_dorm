@@ -95,6 +95,11 @@ export default function AdminUtilitiesPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
       <header style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
         background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
         color: 'white',
         padding: '1rem 0',
@@ -119,7 +124,7 @@ export default function AdminUtilitiesPage() {
         </div>
       </header>
 
-      <main style={{ padding: '2rem 0' }}>
+      <main style={{ padding: '2rem 0', marginTop: '64px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
           
           {/* ฟอร์มสร้างบิลใหม่ */}

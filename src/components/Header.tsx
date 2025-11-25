@@ -102,7 +102,11 @@ export default function Header() {
                   }}>
                     <span>แจ้งซ่อม</span>
                   </div>
-                  <div className="menu-item sub">
+                  <div className="menu-item sub" onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(false);
+                    window.location.href = '/tenant-documents';
+                  }}>
                     <span>เอกสารผู้เช่า</span>
                   </div>
 
@@ -136,14 +140,6 @@ export default function Header() {
                     <span>ดาวน์โหลดเอกสาร</span>
                   </div>
                 </div>
-              </div>
-              
-              <div className="menu-item primary" onClick={(e) => {
-                e.stopPropagation();
-                setIsMenuOpen(false);
-                window.location.href = '/loan-application';
-              }}>
-                <span>ยื่นกู้รายใหม่</span>
               </div>
               
               <div className="menu-item primary" onClick={(e) => {

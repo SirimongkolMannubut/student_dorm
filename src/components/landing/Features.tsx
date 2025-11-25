@@ -51,7 +51,7 @@ export default function Features() {
   return (
     <main className="home-page">
       {/* Hero Section */}
-      <section className="home-hero">
+      <section className="home-hero" style={{paddingTop: '6rem'}}>
         <div className="home-hero-background">
           <div className="hero-blur-circle hero-blur-1"></div>
           <div className="hero-blur-circle hero-blur-2"></div>
@@ -60,6 +60,7 @@ export default function Features() {
         <div className="home-hero-container">
           <div className="home-hero-content">
             <div className="hero-badge">
+              <div className="badge-border-animation"></div>
               <Sparkles size={16} />
               <span>ระบบจัดการหอพักที่ทันสมัย</span>
             </div>

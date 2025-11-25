@@ -1067,17 +1067,27 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: white;
-  color: var(--primary-color);
+  background: linear-gradient(135deg, #60A5FA 0%, #8B5CF6 50%, #10B981 100%);
+  background-size: 200% 100%;
+  color: white;
   padding: 1rem 2.5rem;
   border-radius: 12px;
   font-weight: 600;
   font-size: 1rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 14px 0 rgba(96, 165, 250, 0.4);
   position: relative;
   overflow: hidden;
-  transform: translateY(-14px); /* ขยับขึ้นเพิ่มเติม */
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .btn-primary::before {
@@ -1096,9 +1106,8 @@ button {
 }
 
 .btn-primary:hover {
-  transform: translateY(-20px);
-  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.25);
-  background: #F8FAFC;
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 24px -4px rgba(96, 165, 250, 0.6);
 }
 
 .btn-secondary {
@@ -1246,6 +1255,30 @@ button {
   font-weight: 500;
   margin-bottom: 2rem;
   color: rgba(255, 255, 255, 0.95);
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-border-animation {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(90deg, #60A5FA, #8B5CF6, #10B981, #F59E0B, #60A5FA);
+  background-size: 300% 100%;
+  border-radius: 50px;
+  z-index: -1;
+  animation: borderRun 3s linear infinite;
+}
+
+@keyframes borderRun {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
 }
 
 .home-hero-title {

@@ -83,6 +83,7 @@ export default function PaymentHistoryPage() {
       const userRecords = recordsData.records || [];
       
       // แปลงข้อมูลจาก payments API
+      console.log('User payments from API:', userPayments);
       const apiPayments: PaymentRecord[] = userPayments.map((payment: any) => ({
         id: payment._id || payment.id,
         month: payment.month || 'มีนาคม 2025',
@@ -90,10 +91,11 @@ export default function PaymentHistoryPage() {
         type: payment.paymentType || 'ค่าเช่า',
         status: payment.status === 'approved' ? 'paid' : payment.status === 'rejected' ? 'overdue' : 'pending',
         dueDate: payment.dueDate || new Date().toISOString().split('T')[0],
-        paidDate: payment.status === 'approved' ? payment.uploadTime : undefined,
+        paidDate: payment.status === 'approved' ? (payment.updatedAt || payment.createdAt) : undefined,
         method: payment.status === 'approved' ? 'PromptPay' : '-',
         slipUploaded: true
       }));
+      console.log('API Payments:', apiPayments);
       
       // แปลงข้อมูลจาก payment-records API
       const recordPayments: PaymentRecord[] = userRecords.map((record: any) => ({
@@ -107,8 +109,6 @@ export default function PaymentHistoryPage() {
         method: record.method,
         slipUploaded: record.slipUploaded
       }));
-      
-      const mockHistory: PaymentRecord[] = [];
       
       // ดึงข้อมูลจาก API bookings
       const bookingsResponse = await fetch('/api/bookings', {
@@ -136,8 +136,10 @@ export default function PaymentHistoryPage() {
         }));
       
       // รวมข้อมูลทั้งหมด
+      console.log('Local Payments (bookings):', localPayments);
       const allPayments = [...apiPayments, ...localPayments]
         .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+      console.log('All Payments:', allPayments);
       
       setPaymentHistory(allPayments);
     } catch (error) {
@@ -163,9 +165,9 @@ export default function PaymentHistoryPage() {
     if (status === 'paid') {
       return 'ผ่าน';
     } else if (status === 'overdue') {
-      return 'แก้ไข';
+      return 'ปฏิเสธ';
     } else if (status === 'pending') {
-      return slipUploaded ? 'ดำเนินการ' : 'ชำระ';
+      return slipUploaded ? 'รอตรวจสอบ' : 'รอชำระ';
     }
     return 'ไม่ทราบสถานะ';
   };

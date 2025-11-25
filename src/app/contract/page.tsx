@@ -30,15 +30,35 @@ export default function ContractPage() {
 
         if (response.ok) {
           const user = await response.json();
+          
+          // ดึงข้อมูล booking ที่ approved
+          const bookingsResponse = await fetch('/api/bookings', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const bookingsData = await bookingsResponse.json();
+          const approvedBooking = bookingsData.bookings?.find((b: any) => b.status === 'approved');
+          
+          let roomNumber = 'A-301';
+          let checkInDate = new Date().toISOString().split('T')[0];
+          let contractEndDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0];
+          
+          if (approvedBooking) {
+            roomNumber = approvedBooking.roomId;
+            checkInDate = new Date(approvedBooking.createdAt).toISOString().split('T')[0];
+            const contractEnd = new Date(approvedBooking.createdAt);
+            contractEnd.setFullYear(contractEnd.getFullYear() + 1);
+            contractEndDate = contractEnd.toISOString().split('T')[0];
+          }
+          
           setUserInfo({
             fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
             studentId: user.studentId || '',
             phone: user.phone || '',
             guardianName: user.guardianName || '',
             emergencyPhone: user.emergencyPhone || '',
-            roomNumber: user.roomNumber || 'A-301',
-            checkInDate: user.checkInDate || new Date().toISOString().split('T')[0],
-            contractEndDate: user.contractEndDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]
+            roomNumber,
+            checkInDate,
+            contractEndDate
           });
         }
       } catch (error) {

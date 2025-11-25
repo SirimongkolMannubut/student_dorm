@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Payment from '@/models/Payment';
 import { verify } from 'jsonwebtoken';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,18 +23,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'ไม่มีไฟล์สลิป' }, { status: 400 });
     }
 
-    const bytes = await slip.arrayBuffer();
-    const buffer = Buffer.from(bytes);
     const filename = `${Date.now()}-${slip.name}`;
-    const filepath = path.join(process.cwd(), 'public', 'uploads', filename);
-    
-    await writeFile(filepath, buffer);
+    const blob = await put(filename, slip, {
+      access: 'public',
+    });
 
     const payment = await Payment.create({
       userId: decoded.studentId || decoded.userId || decoded.sub,
       bookingId: bookingId as string,
       amount: parseInt(amount as string),
-      slipUrl: `/uploads/${filename}`,
+      slipUrl: blob.url,
       status: 'pending'
     });
     

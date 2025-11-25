@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import GeneralDocument from '@/models/GeneralDocument';
 import { verify } from 'jsonwebtoken';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,12 +24,9 @@ export async function POST(request: NextRequest) {
     const fileUrls: string[] = [];
     
     for (const file of files) {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
       const filename = `${Date.now()}-${file.name}`;
-      const filepath = path.join(process.cwd(), 'public', 'uploads', 'documents', filename);
-      await writeFile(filepath, buffer);
-      fileUrls.push(`/uploads/documents/${filename}`);
+      const blob = await put(filename, file, { access: 'public' });
+      fileUrls.push(blob.url);
     }
 
     const document = await GeneralDocument.create({

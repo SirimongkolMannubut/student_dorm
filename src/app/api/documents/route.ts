@@ -3,8 +3,7 @@ import connectDB from '@/lib/mongodb';
 import Document from '@/models/Document';
 import GeneralDocument from '@/models/GeneralDocument';
 import { verify } from 'jsonwebtoken';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,30 +26,21 @@ export async function POST(request: NextRequest) {
     let transcriptUrl = '';
 
     if (idCard) {
-      const bytes = await idCard.arrayBuffer();
-      const buffer = Buffer.from(bytes);
       const filename = `${Date.now()}-idcard-${idCard.name}`;
-      const filepath = path.join(process.cwd(), 'public', 'uploads', 'documents', filename);
-      await writeFile(filepath, buffer);
-      idCardUrl = `/uploads/documents/${filename}`;
+      const blob = await put(filename, idCard, { access: 'public' });
+      idCardUrl = blob.url;
     }
 
     if (houseRegistration) {
-      const bytes = await houseRegistration.arrayBuffer();
-      const buffer = Buffer.from(bytes);
       const filename = `${Date.now()}-house-${houseRegistration.name}`;
-      const filepath = path.join(process.cwd(), 'public', 'uploads', 'documents', filename);
-      await writeFile(filepath, buffer);
-      houseRegistrationUrl = `/uploads/documents/${filename}`;
+      const blob = await put(filename, houseRegistration, { access: 'public' });
+      houseRegistrationUrl = blob.url;
     }
 
     if (transcript) {
-      const bytes = await transcript.arrayBuffer();
-      const buffer = Buffer.from(bytes);
       const filename = `${Date.now()}-transcript-${transcript.name}`;
-      const filepath = path.join(process.cwd(), 'public', 'uploads', 'documents', filename);
-      await writeFile(filepath, buffer);
-      transcriptUrl = `/uploads/documents/${filename}`;
+      const blob = await put(filename, transcript, { access: 'public' });
+      transcriptUrl = blob.url;
     }
 
     const document = await Document.create({

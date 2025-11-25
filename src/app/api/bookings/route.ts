@@ -14,14 +14,19 @@ export async function POST(request: NextRequest) {
 
     const decoded: any = verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
     const data = await request.json();
+    const userId = decoded.studentId || decoded.userId || decoded.sub;
+    
+    console.log('Creating booking for userId:', userId, 'roomId:', data.roomId);
     
     const newBooking = await Booking.create({
-      userId: decoded.userId || decoded.sub,
+      userId,
       roomId: data.roomId,
       roomType: data.roomType,
       price: data.price,
-      status: 'pending'
+      status: 'approved'
     });
+    
+    console.log('Booking created:', newBooking);
     
     return NextResponse.json({ 
       success: true, 
@@ -43,7 +48,10 @@ export async function GET(request: NextRequest) {
     }
 
     const decoded: any = verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
-    const bookings = await Booking.find({ userId: decoded.userId || decoded.sub });
+    const userId = decoded.studentId || decoded.userId || decoded.sub;
+    console.log('Getting bookings for userId:', userId);
+    const bookings = await Booking.find({ userId });
+    console.log('Found bookings:', bookings.length);
     
     return NextResponse.json({ bookings });
   } catch (error: any) {

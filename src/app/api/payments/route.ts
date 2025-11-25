@@ -59,7 +59,10 @@ export async function GET(request: NextRequest) {
     }
 
     const decoded: any = verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
-    const payments = await Payment.find({ userId: decoded.userId || decoded.sub });
+    const userId = decoded.studentId || decoded.userId || decoded.sub;
+    console.log('GET payments for userId:', userId);
+    const payments = await Payment.find({ userId });
+    console.log('Found payments:', payments.length, payments);
     
     return NextResponse.json({ payments });
   } catch (error: any) {

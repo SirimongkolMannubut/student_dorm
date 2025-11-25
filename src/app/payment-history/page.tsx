@@ -70,6 +70,13 @@ export default function PaymentHistoryPage() {
     try {
       const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
       
+      // ดึงข้อมูลจาก API bookings
+      const bookingsResponse = await fetch('/api/bookings', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      const bookingsData = await bookingsResponse.json();
+      const userBookings = (bookingsData.bookings || []).filter((b: any) => b.status === 'approved');
+      
       // ดึงข้อมูลจาก API payments (สลิปที่อัปโหลดแล้ว)
       const paymentsResponse = await fetch('/api/payments', {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
@@ -77,70 +84,39 @@ export default function PaymentHistoryPage() {
       const paymentsData = await paymentsResponse.json();
       const userPayments = paymentsData.payments || [];
       
-      // ดึงข้อมูลจาก API payment-records (รายการที่ยังไม่ได้อัปโหลดสลิป)
-      const recordsResponse = await fetch(`/api/payment-records?studentId=${studentId}`);
-      const recordsData = await recordsResponse.json();
-      const userRecords = recordsData.records || [];
+      // สร้าง Set ของ bookingId ที่มีการอัปโหลดสลิปแล้ว
+      const paidBookingIds = new Set(userPayments.map((p: any) => p.bookingId));
       
       // แปลงข้อมูลจาก payments API
-      console.log('User payments from API:', userPayments);
       const apiPayments: PaymentRecord[] = userPayments.map((payment: any) => ({
         id: payment._id || payment.id,
-        month: payment.month || 'มีนาคม 2025',
+        month: 'มีนาคม 2025',
         amount: payment.amount || 0,
-        type: payment.paymentType || 'ค่าเช่า',
+        type: 'ค่าเช่า',
         status: payment.status === 'approved' ? 'paid' : payment.status === 'rejected' ? 'overdue' : 'pending',
-        dueDate: payment.dueDate || new Date().toISOString().split('T')[0],
+        dueDate: new Date().toISOString().split('T')[0],
         paidDate: payment.status === 'approved' ? (payment.updatedAt || payment.createdAt) : undefined,
         method: payment.status === 'approved' ? 'PromptPay' : '-',
         slipUploaded: true
       }));
-      console.log('API Payments:', apiPayments);
       
-      // แปลงข้อมูลจาก payment-records API
-      const recordPayments: PaymentRecord[] = userRecords.map((record: any) => ({
-        id: record.id,
-        month: record.month,
-        amount: record.amount,
-        type: record.type,
-        status: record.status,
-        dueDate: record.dueDate,
-        paidDate: record.paidDate,
-        method: record.method,
-        slipUploaded: record.slipUploaded
-      }));
-      
-      // ดึงข้อมูลจาก API bookings
-      const bookingsResponse = await fetch('/api/bookings', {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
-      const bookingsData = await bookingsResponse.json();
-      const userBookings = bookingsData.bookings || [];
-      
-      // สร้าง Set ของ bookingId ที่มีการอัปโหลดสลิปแล้ว
-      const paidBookingIds = new Set(userPayments.map((p: any) => p.bookingId));
-      
-      // แสดงเฉพาะ booking ที่ยังไม่ได้อัปโหลดสลิป
-      let localPayments: PaymentRecord[] = userBookings
+      // แสดง booking ที่ approved และยังไม่ได้อัปโหลดสลิป
+      const bookingPayments: PaymentRecord[] = userBookings
         .filter((booking: any) => !paidBookingIds.has(booking._id))
         .map((booking: any) => ({
           id: booking._id,
           bookingId: booking._id,
           month: 'มีนาคม 2025',
-          amount: booking.price || booking.amount || 0,
-          type: `ห้อง ${booking.roomId} - ${booking.roomType}`,
+          amount: booking.price || 3500,
+          type: `ห้อง ${booking.roomId} - ปกติ`,
           status: 'pending',
-          dueDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+          dueDate: new Date().toISOString().split('T')[0],
           method: '-',
           slipUploaded: false
         }));
       
       // รวมข้อมูลทั้งหมด
-      console.log('Local Payments (bookings):', localPayments);
-      const allPayments = [...apiPayments, ...localPayments]
-        .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-      console.log('All Payments:', allPayments);
-      
+      const allPayments = [...apiPayments, ...bookingPayments];
       setPaymentHistory(allPayments);
     } catch (error) {
       console.error('Error loading payment history:', error);
@@ -161,7 +137,7 @@ export default function PaymentHistoryPage() {
     }
   };
 
-  const getStatusText = (status: string, slipUploaded: boolean) => {
+  const getStatusText = (status: string, slipUploaded?: boolean) => {
     if (status === 'paid') {
       return 'ผ่าน';
     } else if (status === 'overdue') {
@@ -286,7 +262,7 @@ export default function PaymentHistoryPage() {
                   <div className="status-cell">
                     <div className={`status-badge ${getStatusClass(payment.status)}`}>
                       {getStatusIcon(payment.status)}
-                      <span>{getStatusText(payment.status, payment.slipUploaded)}</span>
+                      <span>{getStatusText(payment.status, payment.slipUploaded || false)}</span>
                     </div>
                     {payment.status === 'pending' && !payment.slipUploaded && (
                       <button 
@@ -613,8 +589,8 @@ export default function PaymentHistoryPage() {
         }
         
         .status-pending {
-          background: #fed7aa !important;
-          color: #9a3412 !important;
+          background: #fef08a !important;
+          color: #854d0e !important;
           padding: 0.25rem 0.75rem;
           border-radius: 20px;
           font-size: 0.75rem;

@@ -56,7 +56,35 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const user = await response.json();
-        console.log('User data from API:', user);
+        
+        // ดึงข้อมูล booking ที่ approved
+        const bookingsResponse = await fetch('/api/bookings', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const bookingsData = await bookingsResponse.json();
+        const approvedBooking = bookingsData.bookings?.find((b: any) => b.status === 'approved');
+        
+        // ดึงข้อมูล payment ที่ approved
+        const paymentsResponse = await fetch('/api/payments', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const paymentsData = await paymentsResponse.json();
+        const approvedPayment = paymentsData.payments?.find((p: any) => p.status === 'approved');
+        
+        let roomNumber = '';
+        let checkInDate = '';
+        let contractEndDate = '';
+        let rentalStatus = 'ไม่มีการจอง';
+        
+        if (approvedBooking && approvedPayment) {
+          roomNumber = approvedBooking.roomId;
+          checkInDate = new Date(approvedBooking.createdAt).toISOString().split('T')[0];
+          const contractEnd = new Date(approvedBooking.createdAt);
+          contractEnd.setFullYear(contractEnd.getFullYear() + 1);
+          contractEndDate = contractEnd.toISOString().split('T')[0];
+          rentalStatus = 'กำลังเช่า';
+        }
+        
         setUserInfo(prev => ({
           ...prev,
           fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
@@ -73,10 +101,10 @@ export default function ProfilePage() {
           emergencyPhone: user.emergencyPhone || '',
           houseNumber: user.houseNumber || '',
           province: user.province || '',
-          roomNumber: user.roomNumber || '',
-          checkInDate: user.checkInDate || '',
-          contractEndDate: user.contractEndDate || '',
-          rentalStatus: user.rentalStatus || (user.status === 'pending' ? 'รอการอนุมัติ' : user.status === 'approved' ? 'อนุมัติแล้ว' : 'ไม่ระบุ')
+          roomNumber,
+          checkInDate,
+          contractEndDate,
+          rentalStatus
         }));
       } else {
         console.log('Failed to fetch profile:', response.status);

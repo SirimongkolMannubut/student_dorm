@@ -1,16 +1,46 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Wrench, Search, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import AdminHeader from '../../../components/AdminHeader';
 import '../../../styles/admin.css';
 
-const maintenanceRequests = [
-  { id: 1, room: 'A301', student: 'สมชาย ใจดี', issue: 'ก๊อกน้ำเสีย', date: '2024-01-15', status: 'pending', priority: 'high' },
-  { id: 2, room: 'B205', student: 'สมหญิง สวยงาม', issue: 'หลอดไฟขาด', date: '2024-01-14', status: 'in-progress', priority: 'medium' },
-  { id: 3, room: 'C102', student: 'วิชัย เก่งมาก', issue: 'แอร์เสีย', date: '2024-01-13', status: 'completed', priority: 'high' },
-];
-
 export default function MaintenancePage() {
+  const [maintenanceRequests, setMaintenanceRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadMaintenances();
+  }, []);
+
+  const loadMaintenances = async () => {
+    try {
+      const response = await fetch('/api/admin/maintenance');
+      const data = await response.json();
+      setMaintenanceRequests(data.maintenances || []);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      const response = await fetch('/api/maintenance', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ id, status })
+      });
+
+      if (response.ok) {
+        loadMaintenances();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   return (
     <div className="admin-page">
       <AdminHeader />
@@ -55,17 +85,13 @@ export default function MaintenancePage() {
               </thead>
               <tbody>
                 {maintenanceRequests.map(request => (
-                  <tr key={request.id}>
-                    <td>{request.room}</td>
-                    <td>{request.student}</td>
-                    <td>{request.issue}</td>
-                    <td>{request.date}</td>
+                  <tr key={request._id}>
+                    <td>{request.roomId}</td>
+                    <td>{request.userId}</td>
+                    <td>{request.description}</td>
+                    <td>{new Date(request.createdAt).toLocaleDateString('th-TH')}</td>
                     <td>
-                      <span className={`priority-badge ${request.priority}`}>
-                        {request.priority === 'high' && 'สูง'}
-                        {request.priority === 'medium' && 'ปานกลาง'}
-                        {request.priority === 'low' && 'ต่ำ'}
-                      </span>
+                      <span className="priority-badge medium">{request.category}</span>
                     </td>
                     <td>
                       <span className={`status-badge ${request.status}`}>
@@ -91,9 +117,16 @@ export default function MaintenancePage() {
                     </td>
                     <td>
                       <div className="table-actions">
-                        <button className="action-btn view">
-                          <Wrench size={16} />
-                        </button>
+                        {request.status === 'pending' && (
+                          <button className="action-btn view" onClick={() => updateStatus(request._id, 'in-progress')}>
+                            ดำเนินการ
+                          </button>
+                        )}
+                        {request.status === 'in-progress' && (
+                          <button className="action-btn view" onClick={() => updateStatus(request._id, 'completed')}>
+                            เสร็จสิ้น
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

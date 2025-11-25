@@ -16,42 +16,41 @@ export default function MaintenancePage() {
   });
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      loadRequests();
-    }
+    fetchUserAndRequests();
   }, []);
 
-  const loadRequests = () => {
-    const mockRequests = [
-      {
-        id: 1,
-        title: 'หลอดไฟเสีย',
-        description: 'หลอดไฟในห้องน้ำเสีย ไม่สว่าง',
-        category: 'ไฟฟ้า',
-        priority: 'medium',
-        status: 'completed',
-        createdDate: '2025-01-10',
-        completedDate: '2025-01-12'
-      },
-      {
-        id: 2,
-        title: 'ก๊อกน้ำรั่ว',
-        description: 'ก๊อกน้ำในห้องน้ำรั่ว น้ำไหลไม่หยุด',
-        category: 'ประปา',
-        priority: 'high',
-        status: 'in_progress',
-        createdDate: '2025-01-15'
+  const fetchUserAndRequests = async () => {
+    try {
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      if (!token) return;
+
+      const response = await fetch('/api/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        loadRequests(token);
       }
-    ];
-    setRequests(mockRequests);
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const loadRequests = async (token: string) => {
+    try {
+      const response = await fetch('/api/maintenance', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setRequests(data.maintenances || []);
+    } catch (error) {
+      console.error('Error loading requests:', error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newRequest.title || !newRequest.description || !newRequest.category) {
@@ -59,16 +58,38 @@ export default function MaintenancePage() {
       return;
     }
 
-    const request = {
-      id: Date.now(),
-      ...newRequest,
-      status: 'pending',
-      createdDate: new Date().toISOString().split('T')[0]
-    };
+    try {
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      if (!token) return;
 
-    setRequests(prev => [request, ...prev]);
-    setNewRequest({ title: '', description: '', category: '', priority: 'medium' });
-    alert('ส่งคำขอแจ้งซ่อมเรียบร้อยแล้ว');
+      const bookingsResponse = await fetch('/api/bookings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const bookingsData = await bookingsResponse.json();
+      const approvedBooking = bookingsData.bookings?.find((b: any) => b.status === 'approved');
+
+      const response = await fetch('/api/maintenance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          roomId: approvedBooking?.roomId || 'A-301',
+          category: newRequest.category,
+          description: `${newRequest.title}: ${newRequest.description}`
+        })
+      });
+
+      if (response.ok) {
+        alert('ส่งคำขอแจ้งซ่อมเรียบร้อยแล้ว');
+        setNewRequest({ title: '', description: '', category: '', priority: 'medium' });
+        loadRequests(token);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('เกิดข้อผิดพลาด');
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -104,10 +125,6 @@ export default function MaintenancePage() {
       <main style={{padding: '2rem 0'}}>
         <div style={{maxWidth: '1000px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem'}}>
           <div style={{textAlign: 'center', background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'}}>
-            <Link href="/dashboard" style={{display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f1f5f9', color: '#64748b', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.875rem', marginBottom: '1rem', textDecoration: 'none'}}>
-              <ArrowLeft size={18} />
-              กลับหน้าหลัก
-            </Link>
             <h1 style={{fontSize: '2rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.5rem'}}>แจ้งซ่อม</h1>
             <p style={{color: '#64748b'}}>แจ้งปัญหาและติดตามสถานะการซ่อม</p>
           </div>
@@ -175,15 +192,10 @@ export default function MaintenancePage() {
             <h3 style={{fontSize: '1.25rem', fontWeight: '600', color: '#1e293b', marginBottom: '1rem'}}>ประวัติการแจ้งซ่อม</h3>
             <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
               {requests.map((request) => (
-                <div key={request.id} style={{border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem', background: '#f8fafc'}}>
+                <div key={request._id} style={{border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem', background: '#f8fafc'}}>
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem'}}>
-                    <h4 style={{fontWeight: '600', color: '#1e293b', margin: '0'}}>{request.title}</h4>
-                    <div style={{display: 'flex', gap: '0.5rem'}}>
-                      <span style={{padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '500', background: request.priority === 'high' ? '#fee2e2' : request.priority === 'medium' ? '#fef3c7' : '#dcfce7', color: request.priority === 'high' ? '#dc2626' : request.priority === 'medium' ? '#d97706' : '#166534'}}>
-                        {request.priority === 'high' ? 'เร่งด่วน' : request.priority === 'medium' ? 'ปานกลาง' : 'ไม่เร่งด่วน'}
-                      </span>
-                      <span style={{padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '500', background: '#eff6ff', color: '#1e40af'}}>{request.category}</span>
-                    </div>
+                    <h4 style={{fontWeight: '600', color: '#1e293b', margin: '0'}}>ห้อง {request.roomId}</h4>
+                    <span style={{padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '500', background: '#eff6ff', color: '#1e40af'}}>{request.category}</span>
                   </div>
                   <p style={{color: '#64748b', marginBottom: '1rem', lineHeight: '1.5'}}>{request.description}</p>
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -191,15 +203,10 @@ export default function MaintenancePage() {
                       {getStatusIcon(request.status)}
                       <span>{getStatusText(request.status)}</span>
                     </div>
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '0.75rem', color: '#64748b'}}>
-                      <span>แจ้งเมื่อ: {new Date(request.createdDate).toLocaleDateString('th-TH')}</span>
-                      {request.completedDate && (
-                        <span>เสร็จเมื่อ: {new Date(request.completedDate).toLocaleDateString('th-TH')}</span>
-                      )}
-                    </div>
+                    <span style={{fontSize: '0.75rem', color: '#64748b'}}>แจ้งเมื่อ: {new Date(request.createdAt).toLocaleDateString('th-TH')}</span>
                   </div>
                 </div>
-              ))}
+              ))})
             </div>
           </div>
         </div>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Token</title>
+</head>
+<body>
+    <h1>JWT Token Decoder</h1>
+    <textarea id="token" placeholder="Paste JWT token here" style="width:100%;height:100px;"></textarea>
+    <button onclick="decodeToken()">Decode</button>
+    <pre id="result"></pre>
+
+    <script>
+        function decodeToken() {
+            const token = document.getElementById('token').value;
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                document.getElementById('result').textContent = JSON.stringify(payload, null, 2);
+            } catch (e) {
+                document.getElementById('result').textContent = 'Invalid token: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
